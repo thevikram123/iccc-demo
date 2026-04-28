@@ -23,10 +23,10 @@ interface Junction {
 }
 
 const CLUSTERS: Cluster[] = [
-  { id: 'cp', name: 'CONNAUGHT PLACE', health: 98, activeNodes: 450, totalNodes: 452, image: img('/images/connaught place.jpeg' },
-  { id: 'hk', name: 'HAUZ KHAS', health: 85, activeNodes: 310, totalNodes: 320, image: img('/images/hauz khas.jpeg' },
-  { id: 'dw', name: 'DWARKA', health: 99, activeNodes: 890, totalNodes: 900, image: img('/images/dwarka.jpeg' },
-  { id: 'ro', name: 'ROHINI', health: 92, activeNodes: 1500, totalNodes: 1600, image: img('/images/rohini.jpeg' },
+  { id: 'cp', name: 'CONNAUGHT PLACE', health: 98, activeNodes: 450, totalNodes: 452, image: img('/images/connaught place.jpeg')},
+  { id: 'hk', name: 'HAUZ KHAS', health: 85, activeNodes: 310, totalNodes: 320, image: img('/images/hauz khas.jpeg')},
+  { id: 'dw', name: 'DWARKA', health: 99, activeNodes: 890, totalNodes: 900, image: img('/images/dwarka.jpeg')},
+  { id: 'ro', name: 'ROHINI', health: 92, activeNodes: 1500, totalNodes: 1600, image: img('/images/rohini.jpeg')},
 ];
 
 const JUNCTIONS: Record<string, Junction[]> = {
