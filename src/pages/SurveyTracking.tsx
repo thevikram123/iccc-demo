@@ -132,7 +132,7 @@ const SITE_DETAILS_MOCK = {
     img('/images/survey 1.jpeg'),
     img('/images/survey 2.jpeg'),
     img('/images/survey 3.png'),
-    img('/images/survey 4.png'
+    img('/images/survey 4.png')
   ]
 };
 
