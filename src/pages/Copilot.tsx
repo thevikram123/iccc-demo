@@ -55,7 +55,7 @@ export default function Copilot() {
       if (!apiKey) throw new Error('API key not configured — set GEMINI_API_KEY in GitHub secrets and redeploy.');
 
       const ai = new GoogleGenAI({ apiKey });
-      const responseStream = await ai.models.generateContentStream({
+      const requestParams = {
         model: 'gemma-4-31b-it',
         contents: userMsg,
         config: {
@@ -80,7 +80,22 @@ Include:
 
 IMPORTANT: Format your answers neatly as plain text. Do NOT use markdown formatting like asterisks (**), hashes (#), or backticks. Use clear spacing and paragraphs.`
         }
-      });
+      };
+
+      let responseStream;
+      for (let attempt = 0; attempt <= 2; attempt++) {
+        try {
+          responseStream = await ai.models.generateContentStream(requestParams);
+          break;
+        } catch (retryErr) {
+          const retryMsg = retryErr instanceof Error ? retryErr.message : String(retryErr);
+          if (attempt < 2 && (retryMsg.includes('Internal') || retryMsg.includes('500'))) {
+            await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
+            continue;
+          }
+          throw retryErr;
+        }
+      }
 
       setMessages(prev => [...prev, { role: 'ai', text: '', location: locationData }]);
       setIsTyping(false);

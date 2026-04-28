@@ -98,7 +98,7 @@ export default function Anomalies() {
                 className="px-4 py-2 bg-primary-fixed text-black font-bold font-mono text-[10px] hover:bg-white transition-colors flex items-center gap-2"
                 onClick={() => {
                   addLog('AI_ANALYSIS_REQUESTED', `Requested AI Copilot analysis for anomaly ${anm.id}`);
-                  navigate('/copilot', { state: { initialMessage: `Analyze anomaly ${anm.id}: ${anm.type} at ${anm.location}. Context: ${anm.desc}`, location: [28.6139, 77.2090] } });
+                  navigate('/copilot', { state: { initialMessage: `ICCC Surveillance System has flagged incident ${anm.id} for AI analysis. Incident category: ${anm.type}. Affected node: ${anm.location}. Operator notes: ${anm.desc} Please produce a full intelligence report.`, location: [28.6139, 77.2090] } });
                 }}
               >
                 <span className="material-symbols-outlined text-sm">smart_toy</span> AI ANALYZE
