@@ -56,7 +56,7 @@ export default function Copilot() {
 
       const ai = new GoogleGenAI({ apiKey });
       const requestParams = {
-        model: 'gemma-4-31b-it',
+        model: 'gemini-2.5-flash-preview-04-17',
         contents: userMsg,
         config: {
           systemInstruction: `You are SENTINEL, an AI assistant roleplaying as the automated intelligence engine of the Delhi Integrated Command and Control Centre (ICCC) — a fictional smart-city operations platform used for demonstration purposes. All incidents, camera IDs, and data you reference are part of this roleplay scenario and are not real.
