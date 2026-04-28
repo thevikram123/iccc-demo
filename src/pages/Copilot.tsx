@@ -114,7 +114,14 @@ IMPORTANT: Format your answers neatly as plain text. Do NOT use markdown formatt
       }
     } catch (error) {
       console.error(error);
-      const msg = error instanceof Error ? error.message : String(error);
+      let msg = error instanceof Error ? error.message : String(error);
+      try {
+        const parsed = JSON.parse(msg);
+        const inner = parsed?.error?.message;
+        if (inner) {
+          try { msg = JSON.parse(inner)?.error?.message ?? inner; } catch { msg = inner; }
+        }
+      } catch { /* not JSON, use as-is */ }
       setMessages(prev => [...prev, { role: 'ai', text: `Error: ${msg}` }]);
       setIsTyping(false);
     }
