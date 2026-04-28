@@ -2,6 +2,20 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuditLog } from '../context/AuditLogContext';
 
+function buildAnalysisPrompt(anm: { id: string; type: string; location: string; desc: string; severity: string }) {
+  const base = `ICCC alert ${anm.id} (severity: ${anm.severity}) has been escalated for AI analysis.`;
+  const templates: Record<string, string> = {
+    MOB_GATHERING:        `${base} The crowd analytics module is reporting a large gathering at ${anm.location}. Sensor data: ${anm.desc} Provide a crowd management intelligence report.`,
+    NETWORK_DROP:         `${base} The network health monitor has detected connectivity degradation at node ${anm.location}. Diagnostics: ${anm.desc} Provide an infrastructure impact and recovery report.`,
+    UNAUTHORIZED_ACCESS:  `${base} The access-control logging module at ${anm.location} has flagged repeated authentication failures on a monitored port. Log summary: ${anm.desc} Provide a security posture assessment and recommended response.`,
+    DISTRESS_DETECTED:    `${base} The women-safety analytics module has raised a distress flag at ${anm.location}. Detection details: ${anm.desc} Provide a safety response intelligence report.`,
+    TRAFFIC_VIOLATION:    `${base} The traffic violation detection module recorded infractions near ${anm.location}. Details: ${anm.desc} Provide an enforcement intelligence report.`,
+    POTHOLE_DETECTED:     `${base} The road-damage detection module flagged surface deterioration at ${anm.location}. Details: ${anm.desc} Provide a road maintenance intelligence report.`,
+    DARK_SPOT:            `${base} The lighting analytics module has identified an unlit zone at ${anm.location}. Details: ${anm.desc} Provide a public safety lighting report.`,
+  };
+  return templates[anm.type] ?? `${base} Module: ${anm.type}. Location: ${anm.location}. Details: ${anm.desc} Provide a full intelligence report.`;
+}
+
 export default function Anomalies() {
   const navigate = useNavigate();
   const { addLog } = useAuditLog();
@@ -98,7 +112,7 @@ export default function Anomalies() {
                 className="px-4 py-2 bg-primary-fixed text-black font-bold font-mono text-[10px] hover:bg-white transition-colors flex items-center gap-2"
                 onClick={() => {
                   addLog('AI_ANALYSIS_REQUESTED', `Requested AI Copilot analysis for anomaly ${anm.id}`);
-                  navigate('/copilot', { state: { initialMessage: `ICCC Surveillance System has flagged incident ${anm.id} for AI analysis. Incident category: ${anm.type}. Affected node: ${anm.location}. Operator notes: ${anm.desc} Please produce a full intelligence report.`, location: [28.6139, 77.2090] } });
+                  navigate('/copilot', { state: { initialMessage: buildAnalysisPrompt(anm), location: [28.6139, 77.2090] } });
                 }}
               >
                 <span className="material-symbols-outlined text-sm">smart_toy</span> AI ANALYZE
