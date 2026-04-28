@@ -8,12 +8,12 @@ const LOCALITIES = [
 ];
 
 const CAMERA_FEEDS = [
-  { id: 'CAM-CP-01', location: 'Connaught Place', type: 'PTZ', status: 'LIVE', analytics: ['CROWD_DENSITY'], image: img('/images/pov%201.jpeg' },
-  { id: 'CAM-HK-01', location: 'Hauz Khas', type: 'FIXED', status: 'LIVE', analytics: ['ANPR'], image: img('/images/pov%202.jpeg' },
-  { id: 'CAM-DW-01', location: 'Dwarka', type: 'PTZ', status: 'LIVE', analytics: ['FACIAL_RECOGNITION', 'DISTRESS_DETECTION'], image: img('/images/pov%203.jpeg' },
-  { id: 'CAM-RO-01', location: 'Rohini', type: 'FIXED', status: 'LIVE', analytics: ['MOB_DETECTION'], image: img('/images/pov%204.jpeg' },
-  { id: 'CAM-LN-01', location: 'Lajpat Nagar', type: 'PTZ', status: 'LIVE', analytics: ['ANPR', 'POTHOLE_DETECTION'], image: img('/images/pov%205.jpeg' },
-  { id: 'CAM-CC-01', location: 'Chandni Chowk', type: 'FIXED', status: 'LIVE', analytics: ['ANPR', 'TRAFFIC_VIOLATION'], image: img('/images/pov%206.jpeg' },
+  { id: 'CAM-CP-01', location: 'Connaught Place', type: 'PTZ', status: 'LIVE', analytics: ['CROWD_DENSITY'], image: img('/images/pov%201.jpeg')},
+  { id: 'CAM-HK-01', location: 'Hauz Khas', type: 'FIXED', status: 'LIVE', analytics: ['ANPR'], image: img('/images/pov%202.jpeg')},
+  { id: 'CAM-DW-01', location: 'Dwarka', type: 'PTZ', status: 'LIVE', analytics: ['FACIAL_RECOGNITION', 'DISTRESS_DETECTION'], image: img('/images/pov%203.jpeg')},
+  { id: 'CAM-RO-01', location: 'Rohini', type: 'FIXED', status: 'LIVE', analytics: ['MOB_DETECTION'], image: img('/images/pov%204.jpeg')},
+  { id: 'CAM-LN-01', location: 'Lajpat Nagar', type: 'PTZ', status: 'LIVE', analytics: ['ANPR', 'POTHOLE_DETECTION'], image: img('/images/pov%205.jpeg')},
+  { id: 'CAM-CC-01', location: 'Chandni Chowk', type: 'FIXED', status: 'LIVE', analytics: ['ANPR', 'TRAFFIC_VIOLATION'], image: img('/images/pov%206.jpeg')},
 ];
 
 export default function CctvFeeds() {
