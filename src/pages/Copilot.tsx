@@ -8,11 +8,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuditLog } from '../context/AuditLogContext';
 
-declare global {
-  interface Window {
-    aistudio?: any;
-  }
-}
+declare const __GK__: string;
 
 interface Message {
   role: 'user' | 'ai';
@@ -33,7 +29,6 @@ const customIcon = new L.Icon({
 export default function Copilot() {
   const location = useLocation();
   const { addLog } = useAuditLog();
-  // Chat State
   const [messages, setMessages] = useState<Message[]>([
     { role: 'ai', text: 'Sentinel AI Copilot online. I am equipped to assist with video analytics, city intelligence, safety, traffic, and public infrastructure inquiries across Delhi. How can I assist you today?' }
   ]);
@@ -42,17 +37,13 @@ export default function Copilot() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const initialMessageProcessed = useRef(false);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const handleSendMessage = async (messageText: string = input, locationData?: [number, number]) => {
     if (!messageText.trim()) return;
-    
+
     const userMsg = messageText;
     setInput('');
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
@@ -60,12 +51,9 @@ export default function Copilot() {
     addLog('AI_INTERACTION', `User sent message to Copilot: "${userMsg}"`);
 
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        setMessages(prev => [...prev, { role: 'ai', text: 'Error: GEMINI_API_KEY is not configured. Set it as a GitHub secret and redeploy.' }]);
-        setIsTyping(false);
-        return;
-      }
+      const apiKey = atob(__GK__);
+      if (!apiKey) throw new Error('API key not configured — set GEMINI_API_KEY in GitHub secrets and redeploy.');
+
       const ai = new GoogleGenAI({ apiKey });
       const responseStream = await ai.models.generateContentStream({
         model: 'gemma-4-31b-it',
@@ -94,11 +82,7 @@ IMPORTANT: Format your answers neatly as plain text. Do NOT use markdown formatt
         }
       });
 
-      setMessages(prev => [...prev, { 
-        role: 'ai', 
-        text: '',
-        location: locationData
-      }]);
+      setMessages(prev => [...prev, { role: 'ai', text: '', location: locationData }]);
       setIsTyping(false);
 
       let accumulatedText = '';
@@ -106,9 +90,9 @@ IMPORTANT: Format your answers neatly as plain text. Do NOT use markdown formatt
         if (chunk.text) {
           accumulatedText += chunk.text;
           setMessages(prev => {
-            const newMessages = [...prev];
-            newMessages[newMessages.length - 1].text = accumulatedText;
-            return newMessages;
+            const msgs = [...prev];
+            msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], text: accumulatedText };
+            return msgs;
           });
         }
       }
@@ -118,10 +102,8 @@ IMPORTANT: Format your answers neatly as plain text. Do NOT use markdown formatt
       try {
         const parsed = JSON.parse(msg);
         const inner = parsed?.error?.message;
-        if (inner) {
-          try { msg = JSON.parse(inner)?.error?.message ?? inner; } catch { msg = inner; }
-        }
-      } catch { /* not JSON, use as-is */ }
+        if (inner) { try { msg = JSON.parse(inner)?.error?.message ?? inner; } catch { msg = inner; } }
+      } catch { /* not JSON */ }
       setMessages(prev => [...prev, { role: 'ai', text: `Error: ${msg}` }]);
       setIsTyping(false);
     }
@@ -150,13 +132,12 @@ IMPORTANT: Format your answers neatly as plain text. Do NOT use markdown formatt
               <div key={idx} className={cn("flex flex-col max-w-[70%]", msg.role === 'user' ? "ml-auto items-end" : "mr-auto items-start")}>
                 <div className={cn("p-4 text-sm font-mono shadow-lg whitespace-pre-wrap", msg.role === 'user' ? "bg-primary-fixed text-black border border-black/10" : "bg-surface-container-high text-black border border-black/10")}>
                   {msg.text}
-                  
-                  {/* Mini Map for AI responses with location */}
+
                   {msg.role === 'ai' && msg.location && (
                     <div className="mt-4 h-48 w-[400px] max-w-full border border-black/20 rounded overflow-hidden">
-                      <MapContainer 
-                        center={msg.location} 
-                        zoom={15} 
+                      <MapContainer
+                        center={msg.location}
+                        zoom={15}
                         style={{ height: '100%', width: '100%', background: '#000000' }}
                         zoomControl={false}
                       >
@@ -189,17 +170,18 @@ IMPORTANT: Format your answers neatly as plain text. Do NOT use markdown formatt
             )}
             <div ref={messagesEndRef} />
           </div>
+
           <div className="p-6 border-t border-black/10 bg-surface-container-lowest">
             <div className="flex gap-4 max-w-4xl mx-auto">
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Ask about video analytics, traffic, safety anomalies, or infrastructure status..."
                 className="flex-1 bg-surface-container border border-black/20 text-black font-mono text-sm p-4 focus:outline-none focus:border-primary-fixed shadow-inner"
               />
-              <button 
+              <button
                 onClick={() => handleSendMessage()}
                 disabled={isTyping || !input.trim()}
                 className="bg-primary-fixed text-black px-8 font-bold font-mono hover:bg-white transition-colors disabled:opacity-50 flex items-center gap-2"
