@@ -31,56 +31,47 @@ const generateMockAlerts = (): Alert[] => {
       severity: 'CRITICAL', 
       descriptions: ['Video analytics detected anomalous movement patterns for lone female pedestrian.', 'Object tracking indicates distress gestures.'],
       timelines: ['Video analytics algorithmic trigger.', 'Alert escalated to local PCR.'],
-      image: img('/images/distress woman.png'
-    },
+      image: img('/images/distress woman.png')},
     'MOB_GATHERING': { 
       severity: 'HIGH', 
       descriptions: ['Crowd density exceeded threshold in restricted zone.', 'Rapid accumulation detected by CCTV feed analysis.'],
       timelines: ['Crowd density analytics breached.', 'Alert generated.'],
-      image: img('/images/mob gathering.png'
-    },
+      image: img('/images/mob gathering.png')},
     'POTHOLE_DETECTED': { 
       severity: 'MEDIUM', 
       descriptions: ['Large pothole detected causing traffic slowdown via traffic camera.', 'Surface anomaly detected from CCTV.'],
       timelines: ['Video analytics detected surface anomaly.', 'Alert logged to dashboard.'],
-      image: img('/images/pothole detection.png'
-    },
+      image: img('/images/pothole detection.png')},
     'GARBAGE_OVERFLOW': { 
       severity: 'LOW', 
       descriptions: ['Municipal bin overflow identified by static CCTV camera.', 'Garbage spilling onto pedestrian walkway detected.'],
       timelines: ['Volumetric analysis via camera feed exceeded 100%.', 'Sanitation alert queued.'],
-      image: img('/images/garbage monitoring.png'
-    },
+      image: img('/images/garbage monitoring.png')},
     'SMOKE_FIRE_DETECTION': { 
       severity: 'CRITICAL', 
       descriptions: ['Thick smoke and open flames identified by video analytics.', 'Fire signatures detected in waste management area.'],
       timelines: ['Video analytics detected smoke/fire signatures.', 'Emergency dispatch alert generated.'],
-      image: img('/images/smoke fire detection.png'
-    },
+      image: img('/images/smoke fire detection.png')},
     'UNATTENDED_CHILD': { 
       severity: 'HIGH', 
       descriptions: ['Child appearing to be wandering alone without adult supervision detected by station CCTV.', 'Unaccompanied minor identified in restricted zone.'],
       timelines: ['Video analytics tracked unaccompanied minor.', 'Alert sent to protection force.'],
-      image: img('/images/child loitering.png'
-    },
+      image: img('/images/child loitering.png')},
     'ESCALATOR_BREAKDOWN': { 
       severity: 'MEDIUM', 
       descriptions: ['Foot overbridge escalator has stopped abruptly, logged by terminal camera.', 'Escalator stoppage without passengers cleared.'],
       timelines: ['Video flow analysis detected sudden halt.', 'Maintenance alert generated.'],
-      image: img('/images/escalator running.png'
-    },
+      image: img('/images/escalator running.png')},
     'CAMERA_TAMPERING': { 
       severity: 'HIGH', 
       descriptions: ['Abrupt loss of feed and lens occlusion detected.', 'Camera feed obstructed by external object.'],
       timelines: ['Video feed diagnostic detected >90% lens occlusion.', 'Security personnel notified.'],
-      image: img('/images/camera fov tampering.png'
-    },
+      image: img('/images/camera fov tampering.png')},
     'STREETLIGHT_BREAKDOWN': { 
       severity: 'MEDIUM', 
       descriptions: ['Low illumination identified by night-vision CCTV analysis.', 'Streetlight out alert generated from video feed.'],
       timelines: ['Video analytic exposure adjustment indicates failed illumination.', 'Maintenance alert queued.'],
-      image: img('/images/streetlight.png'
-    }
+      image: img('/images/streetlight.png')}
   };
 
   const locations = [
