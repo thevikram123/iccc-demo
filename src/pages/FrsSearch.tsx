@@ -841,7 +841,7 @@ function StepDeduplication() {
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white border-2 border-white shadow-sm">
                        <span className="material-symbols-outlined text-[14px]">lock</span>
                     </div>
-                 )}}
+                 )}
               </div>
               <div>
                  <h4 className="font-headline font-black text-2xl uppercase leading-none">Richard Fernandes</h4>
@@ -975,7 +975,7 @@ function StepPublishFRS() {
                         Awaiting CCTV match signals...
                      </div>
                   </div>
-               )}}
+               )}
 
                <h3 className="font-mono text-[10px] text-black uppercase font-bold tracking-widest mb-6">Zone Alert Thresholds</h3>
                
