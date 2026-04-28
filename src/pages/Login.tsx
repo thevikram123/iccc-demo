@@ -34,7 +34,7 @@ const PRELOAD_IMAGES = [
   img('/images/survey 3.png'),
   img('/images/survey 4.png'),
   img('/images/sus 1.jpeg'),
-  img('/images/vip.jpeg'
+  img('/images/vip.jpeg')
 ];
 
 interface LoginProps {
