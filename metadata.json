@@ -1,0 +1,5 @@
+{
+  "name": "iccc interface",
+  "description": "Integrated Command and Control Centre (ICCC) interface for massive CCTV and network monitoring in Delhi, featuring AI analytics, FRS search, alerts, and an AI Copilot.",
+  "requestFramePermissions": []
+}
