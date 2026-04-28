@@ -1079,10 +1079,10 @@ function StepCctvSearch({ onComplete }: { onComplete?: () => void }) {
   }, [progress, status, onComplete]);
 
   const hits = [
-    { cam: 'CAM-NDLS-012', desc: 'NDLS Platform 3', time: '2026-04-27 14:32:18', match: 92, img: img('/images/Raju 4.jpeg' },
-    { cam: 'CAM-CP-008', desc: 'Connaught Place A-Block', time: '2026-04-27 14:28:45', match: 88, img: img('/images/Raju 3.jpeg' },
-    { cam: 'CAM-ISBT-023', desc: 'Kashmere Gate ISBT', time: '2026-04-27 14:15:32', match: 85, img: img('/images/Raju 2.jpeg' },
-    { cam: 'CAM-HK-041', desc: 'Hauz Khas Village Entry', time: '2026-04-27 13:58:21', match: 79, img: img('/images/Raju 1.jpeg' },
+    { cam: 'CAM-NDLS-012', desc: 'NDLS Platform 3', time: '2026-04-27 14:32:18', match: 92, img: img('/images/Raju 4.jpeg')},
+    { cam: 'CAM-CP-008', desc: 'Connaught Place A-Block', time: '2026-04-27 14:28:45', match: 88, img: img('/images/Raju 3.jpeg')},
+    { cam: 'CAM-ISBT-023', desc: 'Kashmere Gate ISBT', time: '2026-04-27 14:15:32', match: 85, img: img('/images/Raju 2.jpeg')},
+    { cam: 'CAM-HK-041', desc: 'Hauz Khas Village Entry', time: '2026-04-27 13:58:21', match: 79, img: img('/images/Raju 1.jpeg')},
   ];
 
   const localities = [
@@ -1247,10 +1247,10 @@ function StepCctvSearch({ onComplete }: { onComplete?: () => void }) {
 
 function StepDetection() { 
   const hits = [
-    { cam: 'CAM-CBD-04', loc: 'Connaught Place - Inner Circle', time: '14:22:05', acc: 88, frame: img('/images/Raju 3.jpeg' },
-    { cam: 'CAM-CBD-12', loc: 'Janpath Intersection', time: '14:35:10', acc: 92, frame: img('/images/Raju Motorcycle.jpeg' },
-    { cam: 'CAM-RLY-02', loc: 'New Delhi Railway Stn - Gate 1', time: '15:10:45', acc: 85, frame: img('/images/Raju 2.jpeg' },
-    { cam: 'CAM-RLY-05', loc: 'New Delhi Railway Stn - Platform 3', time: '15:15:20', acc: 89, frame: img('/images/Raju 3.jpeg' }
+    { cam: 'CAM-CBD-04', loc: 'Connaught Place - Inner Circle', time: '14:22:05', acc: 88, frame: img('/images/Raju 3.jpeg')},
+    { cam: 'CAM-CBD-12', loc: 'Janpath Intersection', time: '14:35:10', acc: 92, frame: img('/images/Raju Motorcycle.jpeg')},
+    { cam: 'CAM-RLY-02', loc: 'New Delhi Railway Stn - Gate 1', time: '15:10:45', acc: 85, frame: img('/images/Raju 2.jpeg')},
+    { cam: 'CAM-RLY-05', loc: 'New Delhi Railway Stn - Platform 3', time: '15:15:20', acc: 89, frame: img('/images/Raju 3.jpeg')}
   ];
 
   return (
@@ -1269,7 +1269,7 @@ function StepDetection() {
           {hits.map((hit, i) => (
              <div key={i} className="bg-white border border-black/10 p-4 hover:border-black transition-colors flex gap-4">
                 <div className="w-1/3 relative shrink-0">
-                  <img src={hit.frame || img("/images/Raju 1.jpeg"} alt={hit.cam} className="w-full h-full object-cover" />
+                  <img src={hit.frame || img("/images/Raju 1.jpeg")} alt={hit.cam} className="w-full h-full object-cover" />
                   <div className="absolute top-2 left-2 bg-primary-fixed text-black font-mono text-[9px] font-bold px-1.5 border border-black">
                     {hit.acc}% Match
                   </div>
