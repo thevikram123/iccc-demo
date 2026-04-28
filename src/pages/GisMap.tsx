@@ -294,7 +294,7 @@ export default function GisMap() {
                         </div>
                         {p[2] !== 'NOMINAL' && (
                           <div className="mt-2 p-1.5 bg-error/20 border border-error/30 text-error text-[10px] uppercase break-words">
-                            {p[2].replace(/_/g, ' ')}}
+                            {p[2].replace(/_/g, ' ')}
                           </div>
                         )}
                         <button 
