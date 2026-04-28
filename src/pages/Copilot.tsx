@@ -173,7 +173,7 @@ IMPORTANT: Format your answers neatly as plain text. Do NOT use markdown formatt
                         </Marker>
                       </MapContainer>
                     </div>
-                  )}}
+                  )}
                 </div>
               </div>
             ))}
