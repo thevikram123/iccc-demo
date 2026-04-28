@@ -1,3 +1,4 @@
+import { img } from '../utils/imagePath';
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Marker, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -128,10 +129,10 @@ const SITE_DETAILS_MOCK = {
   networkFeasibility: 88, // percentage
   fovVerified: 142, // out of 150
   photos: [
-    '/images/survey 1.jpeg',
-    '/images/survey 2.jpeg',
-    '/images/survey 3.png',
-    '/images/survey 4.png'
+    img('/images/survey 1.jpeg'),
+    img('/images/survey 2.jpeg'),
+    img('/images/survey 3.png'),
+    img('/images/survey 4.png'
   ]
 };
 
@@ -214,16 +215,16 @@ export default function SurveyTracking() {
                   <div className="font-mono text-xs font-bold">{site.name}</div>
                   <div className="font-mono text-[10px] text-black font-bold mb-2">Status: {site.status}</div>
                   <div className="grid grid-cols-2 gap-1 mb-2">
-                    <img src="/images/survey 1.jpeg" alt="Survey 1" className="w-full h-12 object-cover border border-black/10" />
-                    <img src="/images/survey 2.jpeg" alt="Survey 2" className="w-full h-12 object-cover border border-black/10" />
-                    <img src="/images/survey 3.png" alt="Survey 3" className="w-full h-12 object-cover border border-black/10" />
-                    <img src="/images/survey 4.png" alt="Survey 4" className="w-full h-12 object-cover border border-black/10" />
+                    <img src={img("/images/survey 1.jpeg")} alt="Survey 1" className="w-full h-12 object-cover border border-black/10" />
+                    <img src={img("/images/survey 2.jpeg")} alt="Survey 2" className="w-full h-12 object-cover border border-black/10" />
+                    <img src={img("/images/survey 3.png")} alt="Survey 3" className="w-full h-12 object-cover border border-black/10" />
+                    <img src={img("/images/survey 4.png")} alt="Survey 4" className="w-full h-12 object-cover border border-black/10" />
                   </div>
                   <div className="font-mono text-[10px] bg-primary-fixed text-black px-1 mt-1 font-bold inline-block">Cameras: {site.cameras}</div>
                 </Popup>
               </Marker>
             </React.Fragment>
-          ))}
+          )})}
         </MapContainer>
 
         {/* Legend Overlay */}
