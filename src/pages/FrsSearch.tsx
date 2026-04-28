@@ -183,7 +183,7 @@ export default function FrsSearch() {
                     <div className="w-16 h-16 bg-black/5 border border-black/10 flex items-center justify-center shrink-0">
                        {currentStep > 3 ? (
                           <img src={img("/images/Raju 1.jpeg")} alt="Avatar" className="w-full h-full object-cover" />
-                       )} : (
+                       ) : (
                           <span className="material-symbols-outlined text-3xl text-black">person</span>
                        )}
                     </div>
@@ -1172,7 +1172,7 @@ function StepCctvSearch({ onComplete }: { onComplete?: () => void }) {
 
              <div className="flex justify-end mt-auto">
                <button 
-                  onClick={()} => setStatus('searching')}
+                  onClick={() => setStatus('searching')}
                   className="bg-primary-fixed hover:bg-black text-black hover:text-white font-mono text-sm uppercase tracking-widest font-bold py-4 px-8 flex items-center justify-center gap-3 transition-all min-w-[300px] border border-transparent hover:border-black">
                   <span className="material-symbols-outlined">search</span> Search All CCTV
                </button>

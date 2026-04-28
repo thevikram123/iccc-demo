@@ -224,7 +224,7 @@ export default function SurveyTracking() {
                 </Popup>
               </Marker>
             </React.Fragment>
-          )})}
+          ))}
         </MapContainer>
 
         {/* Legend Overlay */}
