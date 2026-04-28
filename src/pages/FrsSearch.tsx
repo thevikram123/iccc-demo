@@ -1,3 +1,4 @@
+import { img } from '../utils/imagePath';
 import React, { useState, useEffect } from 'react';
 import { useAuditLog } from '../context/AuditLogContext';
 
@@ -181,8 +182,8 @@ export default function FrsSearch() {
                   <div className="flex gap-4 items-center">
                     <div className="w-16 h-16 bg-black/5 border border-black/10 flex items-center justify-center shrink-0">
                        {currentStep > 3 ? (
-                          <img src="/images/Raju 1.jpeg" alt="Avatar" className="w-full h-full object-cover" />
-                       ) : (
+                          <img src={img("/images/Raju 1.jpeg")} alt="Avatar" className="w-full h-full object-cover" />
+                       )} : (
                           <span className="material-symbols-outlined text-3xl text-black">person</span>
                        )}
                     </div>
@@ -787,7 +788,7 @@ function StepDeduplication() {
          {/* Left Side: Algorithm Status */}
          <div className="w-[450px] shrink-0 flex flex-col gap-4">
             <div className="border border-black/10 bg-white p-4 relative">
-               <img src="/images/Raju 1.jpeg" alt="Best Match Frame" className="w-full aspect-video object-cover object-top" />
+               <img src={img("/images/Raju 1.jpeg")} alt="Best Match Frame" className="w-full aspect-video object-cover object-top" />
                <div className="absolute top-8 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary-fixed text-black font-mono text-[9px] font-bold px-2 py-1 flex flex-col items-center border border-black">
                  <span className="material-symbols-outlined text-[12px]">filter_center_focus</span>
                  CANONICAL: 86%
@@ -835,12 +836,12 @@ function StepDeduplication() {
             
             <div className="flex gap-4 items-center mb-6">
               <div className="w-20 h-20 bg-surface-container border border-black/10 shrink-0 relative">
-                 <img src="/images/Raju 1.jpeg" alt="Canonical" className="w-full h-full object-cover object-top" />
+                 <img src={img("/images/Raju 1.jpeg")} alt="Canonical" className="w-full h-full object-cover object-top" />
                  {identityLocked && (
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white border-2 border-white shadow-sm">
                        <span className="material-symbols-outlined text-[14px]">lock</span>
                     </div>
-                 )}
+                 )}}
               </div>
               <div>
                  <h4 className="font-headline font-black text-2xl uppercase leading-none">Richard Fernandes</h4>
@@ -924,7 +925,7 @@ function StepPublishFRS() {
             </div>
 
             <div className="border border-black/10 bg-white p-4 relative">
-               <img src="/images/Raju 1.jpeg" alt="FRS Enrolled" className="w-full aspect-video object-cover object-top" />
+               <img src={img("/images/Raju 1.jpeg")} alt="FRS Enrolled" className="w-full aspect-video object-cover object-top" />
                <div className="absolute top-8 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary-fixed text-black font-mono text-[9px] font-bold px-2 py-1 flex flex-col items-center border border-black">
                  <span className="material-symbols-outlined text-[12px]">filter_center_focus</span>
                  FRS Enrolled: 86%
@@ -942,7 +943,7 @@ function StepPublishFRS() {
 
             <div className="border border-black/10 bg-white p-4 flex gap-4 items-center mt-auto">
                <div className="w-16 h-16 bg-surface-container shrink-0">
-                  <img src="/images/Raju 1.jpeg" alt="Profile" className="w-full h-full object-cover object-top" />
+                  <img src={img("/images/Raju 1.jpeg")} alt="Profile" className="w-full h-full object-cover object-top" />
                </div>
                <div>
                   <h4 className="font-headline font-bold text-lg leading-tight uppercase">Richard Fernandes</h4>
@@ -974,7 +975,7 @@ function StepPublishFRS() {
                         Awaiting CCTV match signals...
                      </div>
                   </div>
-               )}
+               )}}
 
                <h3 className="font-mono text-[10px] text-black uppercase font-bold tracking-widest mb-6">Zone Alert Thresholds</h3>
                
@@ -1078,10 +1079,10 @@ function StepCctvSearch({ onComplete }: { onComplete?: () => void }) {
   }, [progress, status, onComplete]);
 
   const hits = [
-    { cam: 'CAM-NDLS-012', desc: 'NDLS Platform 3', time: '2026-04-27 14:32:18', match: 92, img: '/images/Raju 4.jpeg' },
-    { cam: 'CAM-CP-008', desc: 'Connaught Place A-Block', time: '2026-04-27 14:28:45', match: 88, img: '/images/Raju 3.jpeg' },
-    { cam: 'CAM-ISBT-023', desc: 'Kashmere Gate ISBT', time: '2026-04-27 14:15:32', match: 85, img: '/images/Raju 2.jpeg' },
-    { cam: 'CAM-HK-041', desc: 'Hauz Khas Village Entry', time: '2026-04-27 13:58:21', match: 79, img: '/images/Raju 1.jpeg' },
+    { cam: 'CAM-NDLS-012', desc: 'NDLS Platform 3', time: '2026-04-27 14:32:18', match: 92, img: img('/images/Raju 4.jpeg' },
+    { cam: 'CAM-CP-008', desc: 'Connaught Place A-Block', time: '2026-04-27 14:28:45', match: 88, img: img('/images/Raju 3.jpeg' },
+    { cam: 'CAM-ISBT-023', desc: 'Kashmere Gate ISBT', time: '2026-04-27 14:15:32', match: 85, img: img('/images/Raju 2.jpeg' },
+    { cam: 'CAM-HK-041', desc: 'Hauz Khas Village Entry', time: '2026-04-27 13:58:21', match: 79, img: img('/images/Raju 1.jpeg' },
   ];
 
   const localities = [
@@ -1115,7 +1116,7 @@ function StepCctvSearch({ onComplete }: { onComplete?: () => void }) {
             <h3 className="font-mono text-[10px] text-black uppercase font-bold tracking-widest border-b border-black/10 pb-2">Target Profile</h3>
             <div className="flex items-center gap-6">
                 <div className="w-16 h-16 bg-surface-container shrink-0 border border-black/10">
-                   <img src="/images/Raju 1.jpeg" alt="Subject" className="w-full h-full object-cover" />
+                   <img src={img("/images/Raju 1.jpeg")} alt="Subject" className="w-full h-full object-cover" />
                 </div>
                 <div>
                    <div className="flex items-center gap-4 mb-1">
@@ -1171,7 +1172,7 @@ function StepCctvSearch({ onComplete }: { onComplete?: () => void }) {
 
              <div className="flex justify-end mt-auto">
                <button 
-                  onClick={() => setStatus('searching')}
+                  onClick={()} => setStatus('searching')}
                   className="bg-primary-fixed hover:bg-black text-black hover:text-white font-mono text-sm uppercase tracking-widest font-bold py-4 px-8 flex items-center justify-center gap-3 transition-all min-w-[300px] border border-transparent hover:border-black">
                   <span className="material-symbols-outlined">search</span> Search All CCTV
                </button>
@@ -1246,10 +1247,10 @@ function StepCctvSearch({ onComplete }: { onComplete?: () => void }) {
 
 function StepDetection() { 
   const hits = [
-    { cam: 'CAM-CBD-04', loc: 'Connaught Place - Inner Circle', time: '14:22:05', acc: 88, frame: '/images/Raju 3.jpeg' },
-    { cam: 'CAM-CBD-12', loc: 'Janpath Intersection', time: '14:35:10', acc: 92, frame: '/images/Raju Motorcycle.jpeg' },
-    { cam: 'CAM-RLY-02', loc: 'New Delhi Railway Stn - Gate 1', time: '15:10:45', acc: 85, frame: '/images/Raju 2.jpeg' },
-    { cam: 'CAM-RLY-05', loc: 'New Delhi Railway Stn - Platform 3', time: '15:15:20', acc: 89, frame: '/images/Raju 3.jpeg' }
+    { cam: 'CAM-CBD-04', loc: 'Connaught Place - Inner Circle', time: '14:22:05', acc: 88, frame: img('/images/Raju 3.jpeg' },
+    { cam: 'CAM-CBD-12', loc: 'Janpath Intersection', time: '14:35:10', acc: 92, frame: img('/images/Raju Motorcycle.jpeg' },
+    { cam: 'CAM-RLY-02', loc: 'New Delhi Railway Stn - Gate 1', time: '15:10:45', acc: 85, frame: img('/images/Raju 2.jpeg' },
+    { cam: 'CAM-RLY-05', loc: 'New Delhi Railway Stn - Platform 3', time: '15:15:20', acc: 89, frame: img('/images/Raju 3.jpeg' }
   ];
 
   return (
@@ -1268,7 +1269,7 @@ function StepDetection() {
           {hits.map((hit, i) => (
              <div key={i} className="bg-white border border-black/10 p-4 hover:border-black transition-colors flex gap-4">
                 <div className="w-1/3 relative shrink-0">
-                  <img src={hit.frame || "/images/Raju 1.jpeg"} alt={hit.cam} className="w-full h-full object-cover" />
+                  <img src={hit.frame || img("/images/Raju 1.jpeg"} alt={hit.cam} className="w-full h-full object-cover" />
                   <div className="absolute top-2 left-2 bg-primary-fixed text-black font-mono text-[9px] font-bold px-1.5 border border-black">
                     {hit.acc}% Match
                   </div>
