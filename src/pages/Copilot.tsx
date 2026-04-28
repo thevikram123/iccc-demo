@@ -65,7 +65,7 @@ export default function Copilot() {
         model: 'gemma-4-31b-it',
         contents: userMsg,
         config: {
-          systemInstruction: `You are the AI Copilot for the Delhi Integrated Command and Control Centre (ICCC). 
+          systemInstruction: `You are the AI Copilot for the Delhi Integrated Command and Control Centre (ICCC).
 We have various kinds of video analytics running on CCTV cameras across Delhi, including:
 - Pothole Detection
 - Crowd / Mob Gathering
@@ -84,16 +84,7 @@ Include:
 - ANALYTICS DATA (invent plausible numbers and specific camera IDs if needed to demonstrate the system's capability)
 - RECOMMENDED ACTION (e.g., Dispatching PWD response team, escalating to traffic police)
 
-IMPORTANT: Format your answers neatly as plain text. Do NOT use markdown formatting like asterisks (**), hashes (#), or backticks. Use clear spacing and paragraphs.`,
-          tools: [{ googleMaps: {} }],
-          toolConfig: {
-            retrievalConfig: {
-              latLng: {
-                latitude: 28.6139,
-                longitude: 77.2090
-              }
-            }
-          }
+IMPORTANT: Format your answers neatly as plain text. Do NOT use markdown formatting like asterisks (**), hashes (#), or backticks. Use clear spacing and paragraphs.`
         }
       });
 
