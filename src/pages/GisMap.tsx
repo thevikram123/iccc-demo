@@ -1,3 +1,4 @@
+import { img } from '../utils/imagePath';
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle, Polygon, useMap } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
@@ -280,10 +281,10 @@ export default function GisMap() {
                       <div className="bg-surface-container-highest p-3 text-black font-mono text-xs border border-black/10 min-w-[200px]">
                         <div className="font-bold mb-1 border-b border-black/10 pb-1">CAM_ID: SD_CAM_{i}</div>
                         <div className="grid grid-cols-2 gap-1 mb-2 mt-2">
-                          <img src="/images/survey 1.jpeg" alt="Survey 1" className="w-full h-12 object-cover border border-black/10" />
-                          <img src="/images/survey 2.jpeg" alt="Survey 2" className="w-full h-12 object-cover border border-black/10" />
-                          <img src="/images/survey 3.png" alt="Survey 3" className="w-full h-12 object-cover border border-black/10" />
-                          <img src="/images/survey 4.png" alt="Survey 4" className="w-full h-12 object-cover border border-black/10" />
+                          <img src={img("/images/survey 1.jpeg")} alt="Survey 1" className="w-full h-12 object-cover border border-black/10" />
+                          <img src={img("/images/survey 2.jpeg")} alt="Survey 2" className="w-full h-12 object-cover border border-black/10" />
+                          <img src={img("/images/survey 3.png")} alt="Survey 3" className="w-full h-12 object-cover border border-black/10" />
+                          <img src={img("/images/survey 4.png")} alt="Survey 4" className="w-full h-12 object-cover border border-black/10" />
                         </div>
                         <div className="flex justify-between items-center mt-2">
                           <span className="text-black">STATUS:</span>
@@ -293,7 +294,7 @@ export default function GisMap() {
                         </div>
                         {p[2] !== 'NOMINAL' && (
                           <div className="mt-2 p-1.5 bg-error/20 border border-error/30 text-error text-[10px] uppercase break-words">
-                            {p[2].replace(/_/g, ' ')}
+                            {p[2].replace(/_/g, ' ')}}
                           </div>
                         )}
                         <button 
