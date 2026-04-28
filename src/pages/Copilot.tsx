@@ -1,5 +1,6 @@
 import { img } from '../utils/imagePath';
 import React, { useState, useRef, useEffect } from 'react';
+import { GoogleGenAI } from '@google/genai';
 import { useLocation } from 'react-router-dom';
 import { cn } from '../components/Layout';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -7,13 +8,13 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuditLog } from '../context/AuditLogContext';
 
+declare const __GK__: string;
+
 interface Message {
   role: 'user' | 'ai';
   text: string;
   location?: [number, number];
 }
-
-const PROXY_URL = import.meta.env.VITE_API_PROXY_URL as string;
 
 const customIcon = new L.Icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -50,70 +51,59 @@ export default function Copilot() {
     addLog('AI_INTERACTION', `User sent message to Copilot: "${userMsg}"`);
 
     try {
-      if (!PROXY_URL) throw new Error('API proxy not configured. Set VITE_API_PROXY_URL and redeploy.');
+      const apiKey = atob(__GK__);
+      if (!apiKey) throw new Error('API key not configured — set GEMINI_API_KEY in GitHub secrets and redeploy.');
 
-      const res = await fetch(PROXY_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg }),
+      const ai = new GoogleGenAI({ apiKey });
+      const responseStream = await ai.models.generateContentStream({
+        model: 'gemma-4-31b-it',
+        contents: userMsg,
+        config: {
+          systemInstruction: `You are the AI Copilot for the Delhi Integrated Command and Control Centre (ICCC).
+We have various kinds of video analytics running on CCTV cameras across Delhi, including:
+- Pothole Detection
+- Crowd / Mob Gathering
+- ANPR (Automatic Number Plate Recognition)
+- Dark Spot Identification
+- Distress Detection (e.g., Women Safety)
+- Traffic Violation Detection
+- Incident & Anomaly Detection
+
+You have access to a wide range of video analytics data, Delhi area intelligence, safety, traffic, and public infrastructure status.
+When asked a question about a location or an issue (like "Potholes in Vasant Kunj?" or "Traffic violations in South Delhi"), you MUST provide a specific, authoritative, and structured situation report. DO NOT say you cannot see real-time markers or refer the user to other departments. You are the system.
+
+Format your responses as a crisp, military-style INTELLIGENCE REPORT.
+Include:
+- INCIDENT SUMMARY
+- ANALYTICS DATA (invent plausible numbers and specific camera IDs if needed to demonstrate the system's capability)
+- RECOMMENDED ACTION (e.g., Dispatching PWD response team, escalating to traffic police)
+
+IMPORTANT: Format your answers neatly as plain text. Do NOT use markdown formatting like asterisks (**), hashes (#), or backticks. Use clear spacing and paragraphs.`
+        }
       });
-
-      if (!res.ok) {
-        let errMsg = `HTTP ${res.status}`;
-        try {
-          const body = await res.text();
-          const parsed = JSON.parse(body);
-          errMsg = parsed?.error?.message ?? parsed?.message ?? body;
-          try { errMsg = JSON.parse(errMsg)?.error?.message ?? errMsg; } catch { /* already plain */ }
-        } catch { /* use status code */ }
-        throw new Error(errMsg);
-      }
 
       setMessages(prev => [...prev, { role: 'ai', text: '', location: locationData }]);
       setIsTyping(false);
 
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
       let accumulatedText = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() ?? '';
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const data = line.slice(6).trim();
-          if (!data || data === '[DONE]') continue;
-          try {
-            const json = JSON.parse(data);
-            const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (text) {
-              accumulatedText += text;
-              setMessages(prev => {
-                const msgs = [...prev];
-                msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], text: accumulatedText };
-                return msgs;
-              });
-            }
-          } catch { /* partial chunk, skip */ }
+      for await (const chunk of responseStream) {
+        if (chunk.text) {
+          accumulatedText += chunk.text;
+          setMessages(prev => {
+            const msgs = [...prev];
+            msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], text: accumulatedText };
+            return msgs;
+          });
         }
-      }
-
-      if (!accumulatedText) {
-        setMessages(prev => {
-          const msgs = [...prev];
-          msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], text: 'No response received.' };
-          return msgs;
-        });
       }
     } catch (error) {
       console.error(error);
-      const msg = error instanceof Error ? error.message : String(error);
+      let msg = error instanceof Error ? error.message : String(error);
+      try {
+        const parsed = JSON.parse(msg);
+        const inner = parsed?.error?.message;
+        if (inner) { try { msg = JSON.parse(inner)?.error?.message ?? inner; } catch { msg = inner; } }
+      } catch { /* not JSON */ }
       setMessages(prev => [...prev, { role: 'ai', text: `Error: ${msg}` }]);
       setIsTyping(false);
     }
