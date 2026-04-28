@@ -1,3 +1,4 @@
+import { img } from '../utils/imagePath';
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { useLocation } from 'react-router-dom';
@@ -61,7 +62,7 @@ export default function Copilot() {
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
       const responseStream = await ai.models.generateContentStream({
-        model: 'gemini-3-flash-preview',
+        model: 'gemma-4-31b-it',
         contents: userMsg,
         config: {
           systemInstruction: `You are the AI Copilot for the Delhi Integrated Command and Control Centre (ICCC). 
@@ -163,16 +164,16 @@ IMPORTANT: Format your answers neatly as plain text. Do NOT use markdown formatt
                           <Popup>
                             <div className="font-mono text-xs text-black font-bold border-b border-black/10 pb-1 mb-2">Anomaly Location</div>
                             <div className="grid grid-cols-2 gap-1 min-w-[200px]">
-                              <img src="/images/survey 1.jpeg" alt="Survey 1" className="w-full h-12 object-cover border border-black/10" />
-                              <img src="/images/survey 2.jpeg" alt="Survey 2" className="w-full h-12 object-cover border border-black/10" />
-                              <img src="/images/survey 3.png" alt="Survey 3" className="w-full h-12 object-cover border border-black/10" />
-                              <img src="/images/survey 4.png" alt="Survey 4" className="w-full h-12 object-cover border border-black/10" />
+                              <img src={img("/images/survey 1.jpeg")} alt="Survey 1" className="w-full h-12 object-cover border border-black/10" />
+                              <img src={img("/images/survey 2.jpeg")} alt="Survey 2" className="w-full h-12 object-cover border border-black/10" />
+                              <img src={img("/images/survey 3.png")} alt="Survey 3" className="w-full h-12 object-cover border border-black/10" />
+                              <img src={img("/images/survey 4.png")} alt="Survey 4" className="w-full h-12 object-cover border border-black/10" />
                             </div>
                           </Popup>
                         </Marker>
                       </MapContainer>
                     </div>
-                  )}
+                  )}}
                 </div>
               </div>
             ))}
