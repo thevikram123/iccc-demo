@@ -60,7 +60,13 @@ export default function Copilot() {
     addLog('AI_INTERACTION', `User sent message to Copilot: "${userMsg}"`);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        setMessages(prev => [...prev, { role: 'ai', text: 'Error: GEMINI_API_KEY is not configured. Set it as a GitHub secret and redeploy.' }]);
+        setIsTyping(false);
+        return;
+      }
+      const ai = new GoogleGenAI({ apiKey });
       const responseStream = await ai.models.generateContentStream({
         model: 'gemma-4-31b-it',
         contents: userMsg,
@@ -108,7 +114,8 @@ IMPORTANT: Format your answers neatly as plain text. Do NOT use markdown formatt
       }
     } catch (error) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'ai', text: 'Error: Unable to process request.' }]);
+      const msg = error instanceof Error ? error.message : String(error);
+      setMessages(prev => [...prev, { role: 'ai', text: `Error: ${msg}` }]);
       setIsTyping(false);
     }
   };
