@@ -6,7 +6,13 @@ const distDir = path.join(repoRoot, 'dist-offline');
 const outDir = path.join(repoRoot, 'offline-build');
 const outFile = path.join(outDir, 'iccc-demo-offline.zip');
 const docsFile = path.join(repoRoot, 'docs', 'offline-demo.md');
-const transformersUrl = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3/dist/transformers.min.js';
+const transformersDistUrl = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3/dist';
+const transformersRuntimeFiles = [
+  'transformers.min.js',
+  'ort.bundle.min.mjs',
+  'ort-wasm-simd-threaded.jsep.mjs',
+  'ort-wasm-simd-threaded.jsep.wasm',
+];
 const transformersFile = path.join(distDir, 'vendor', 'transformers.min.js');
 const googleFontCssUrls = [
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@100;300;400;500;600;700;800&family=JetBrains+Mono:wght@100;300;400;500;700&display=swap',
@@ -54,13 +60,17 @@ async function download(url, destination) {
 }
 
 async function ensureTransformersRuntime() {
-  if (fs.existsSync(transformersFile)) return;
+  const missingRuntimeFiles = transformersRuntimeFiles.filter((fileName) => !fs.existsSync(path.join(distDir, 'vendor', fileName)));
+  if (missingRuntimeFiles.length === 0) return;
+
   console.log('Downloading Transformers.js runtime for the offline zip...');
-  await download(transformersUrl, transformersFile);
+  for (const fileName of missingRuntimeFiles) {
+    await download(`${transformersDistUrl}/${fileName}`, path.join(distDir, 'vendor', fileName));
+  }
 }
 
 async function ensureGoogleFonts() {
-  if (fs.existsSync(googleFontsCssFile)) return;
+  if (googleFontsAreComplete()) return;
 
   console.log('Downloading Google font and Material Symbols assets for the offline zip...');
   fs.mkdirSync(googleFontsDir, { recursive: true });
@@ -86,6 +96,13 @@ async function ensureGoogleFonts() {
   }
 
   fs.writeFileSync(googleFontsCssFile, combinedCss);
+}
+
+function googleFontsAreComplete() {
+  if (!fs.existsSync(googleFontsCssFile)) return false;
+  const css = fs.readFileSync(googleFontsCssFile, 'utf8');
+  const referencedFonts = [...css.matchAll(/url\(vendor\/google-fonts\/([^)]+)\)/g)].map((match) => match[1]);
+  return referencedFonts.length > 0 && referencedFonts.every((fontFileName) => fs.existsSync(path.join(googleFontsDir, fontFileName)));
 }
 
 function readDistAsset(assetPath) {
@@ -122,17 +139,25 @@ function inlineBuiltAssets() {
   html = html.replace('</head>', `<style id="offline-google-fonts">\n${escapeStyle(fs.readFileSync(googleFontsCssFile, 'utf8'))}\n</style>\n  </head>`);
 
   html = html.replace(
-    /<link rel="stylesheet" crossorigin href="([^"]+)"\s*\/?>/g,
+    /<link\b(?=[^>]*\brel=["']stylesheet["'])(?=[^>]*\bhref=["']([^"']+)["'])[^>]*\/?>/gi,
     (_match, href) => `<style>\n${escapeStyle(readDistAsset(href))}\n</style>`
   );
 
   html = html.replace(
-    /<script type="module" crossorigin src="([^"]+)"><\/script>/g,
+    /<script\b(?=[^>]*\btype=["']module["'])(?=[^>]*\bsrc=["']([^"']+)["'])[^>]*>\s*<\/script>/gi,
     (_match, src) => {
       inlineScripts.push(`<script>\n${escapeScript(readDistAsset(src))}\n</script>`);
       return '';
     }
   );
+
+  if (inlineScripts.length !== 1) {
+    throw new Error(`Expected exactly one built app script to inline, found ${inlineScripts.length}.`);
+  }
+
+  if (/<script\b[^>]*\btype=["']module["']/i.test(html) || /<link\b[^>]*\brel=["']stylesheet["']/i.test(html)) {
+    throw new Error('Offline index still contains external module script or stylesheet tags after inlining.');
+  }
 
   html = html.replace('</head>', `${offlineRuntimeStyle}\n  </head>`);
   html = html.replace('</body>', `${inlineScripts.join('\n')}\n  </body>`);

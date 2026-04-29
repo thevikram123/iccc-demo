@@ -21,7 +21,7 @@ offline-build/iccc-demo-offline.zip
 3. On first use, keep internet available and open AI Copilot once. The Copilot loads Transformers.js and Gemma 3 270M into the browser cache.
 4. After that warm-up, the same extracted folder can be opened without network access for demos.
 
-The zip contains only static web files and documentation. It does not contain installers, executables, or a local server. The dashboard, GIS screens, evidence views, FRS flow, alerts, infrastructure pages, demo assets, Google fonts, Material Symbols, and Transformers.js runtime are shipped inside the zip; the Copilot is the only part that needs a first-run online warm-up for Gemma model caching.
+The zip contains only static web files and documentation. It does not contain installers, executables, or a local server. The dashboard, GIS screens, evidence views, FRS flow, alerts, infrastructure pages, demo assets, Google fonts, Material Symbols, Transformers.js, and its ONNX/WebAssembly runtime sidecar files are shipped inside the zip; the Copilot is the only part that needs a first-run online warm-up for Gemma model caching.
 
 ## Notes
 

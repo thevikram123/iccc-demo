@@ -3,7 +3,12 @@ const path = require('path');
 
 const repoRoot = path.resolve(__dirname, '..');
 const indexFile = path.join(repoRoot, 'dist-offline', 'index.html');
-const transformersFile = path.join(repoRoot, 'dist-offline', 'vendor', 'transformers.min.js');
+const transformersRuntimeFiles = [
+  'transformers.min.js',
+  'ort.bundle.min.mjs',
+  'ort-wasm-simd-threaded.jsep.mjs',
+  'ort-wasm-simd-threaded.jsep.wasm',
+];
 const googleFontsCssFile = path.join(repoRoot, 'dist-offline', 'vendor', 'google-fonts', 'fonts.css');
 const zipFile = path.join(repoRoot, 'offline-build', 'iccc-demo-offline.zip');
 
@@ -12,7 +17,14 @@ function fail(message) {
   process.exitCode = 1;
 }
 
-for (const file of [indexFile, transformersFile, googleFontsCssFile, zipFile]) {
+const expectedFiles = [
+  indexFile,
+  googleFontsCssFile,
+  zipFile,
+  ...transformersRuntimeFiles.map((fileName) => path.join(repoRoot, 'dist-offline', 'vendor', fileName)),
+];
+
+for (const file of expectedFiles) {
   if (!fs.existsSync(file)) {
     fail(`Missing expected offline artifact: ${path.relative(repoRoot, file)}`);
   }
@@ -21,6 +33,8 @@ for (const file of [indexFile, transformersFile, googleFontsCssFile, zipFile]) {
 if (process.exitCode) process.exit();
 
 const html = fs.readFileSync(indexFile, 'utf8');
+const fontCss = fs.readFileSync(googleFontsCssFile, 'utf8');
+const referencedFonts = [...fontCss.matchAll(/url\(vendor\/google-fonts\/([^)]+)\)/g)].map((match) => match[1]);
 const rootIndex = html.indexOf('<div id="root"></div>');
 const firstScriptIndex = html.indexOf('<script>');
 const checks = [
@@ -30,7 +44,7 @@ const checks = [
   },
   {
     label: 'offline index contains an inline classic app script',
-    pass: /<script>\s*[\s\S]+<\/script>/.test(html) && !html.includes('type="module"'),
+    pass: /<script>\s*[\s\S]+<\/script>/.test(html) && !html.includes('type="module"') && !/<script\b[^>]*\bsrc=/i.test(html),
   },
   {
     label: 'offline app script runs after the React mount point exists',
@@ -43,6 +57,14 @@ const checks = [
   {
     label: 'offline index does not depend on Google-hosted fonts',
     pass: !html.includes('fonts.googleapis.com') && !html.includes('fonts.gstatic.com') && html.includes('vendor/google-fonts/'),
+  },
+  {
+    label: 'all referenced Google font files are included',
+    pass: referencedFonts.length > 0 && referencedFonts.every((fontFileName) => fs.existsSync(path.join(repoRoot, 'dist-offline', 'vendor', 'google-fonts', fontFileName))),
+  },
+  {
+    label: 'offline index does not contain external stylesheet tags',
+    pass: !/<link\b[^>]*\brel=["']stylesheet["']/i.test(html),
   },
   {
     label: 'offline index does not depend on CDN-hosted Transformers.js',
