@@ -51,12 +51,12 @@ Below is an overview of the key directories and files in this project:
 
 ## Offline Demo Zip
 
-This repo also includes a side build for laptop demos in low-connectivity environments. It leaves the main Cloudflare Worker/Gemini deployment unchanged.
+This repo also includes a complete side build for laptop demos in low-connectivity environments. It leaves the main Cloudflare Worker/Gemini deployment unchanged.
 
 ```bash
 npm run package:offline
 ```
 
-The command builds `dist-offline/` with local-file friendly routes and relative assets, inlines the built app into a direct-open `index.html`, then writes `offline-build/iccc-demo-offline.zip`. Extract the zip and open its `index.html` in a Chromium-based browser. The first AI Copilot run needs internet to cache Transformers.js and `google/gemma-3-270m-it`; subsequent runs use the browser cache and do not call the Cloudflare Worker.
+The command builds `dist-offline/` with local-file friendly routes and relative assets, removes remote font dependencies, inlines the built app into a direct-open `index.html`, then writes `offline-build/iccc-demo-offline.zip`. Extract the zip and open its `index.html` in a Chromium-based browser. The app shell, dashboards, GIS screens, FRS flow, alerts, infrastructure views, and local media assets are included in the zip. The first AI Copilot run needs internet to cache Transformers.js and `google/gemma-3-270m-it`; subsequent runs use the browser cache and do not call the Cloudflare Worker.
 
 More detail is in `docs/offline-demo.md`.

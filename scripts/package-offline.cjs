@@ -26,9 +26,48 @@ function escapeScript(js) {
   return js.replace(/<\/script/gi, '<\\/script');
 }
 
+const offlineRuntimeStyle = `
+<style id="offline-runtime-fallbacks">
+  :root {
+    --offline-font-body: Inter, Segoe UI, Arial, sans-serif;
+    --offline-font-headline: Space Grotesk, Segoe UI, Arial, sans-serif;
+    --offline-font-mono: JetBrains Mono, Consolas, monospace;
+  }
+
+  .material-symbols-outlined {
+    align-items: center;
+    border: 1px solid currentColor;
+    display: inline-flex;
+    font-family: var(--offline-font-mono);
+    font-size: 0 !important;
+    font-style: normal;
+    font-weight: 700;
+    height: 1.35em;
+    justify-content: center;
+    line-height: 1;
+    min-width: 1.35em;
+    overflow: hidden;
+    text-transform: uppercase;
+    vertical-align: -0.18em;
+  }
+
+  .material-symbols-outlined::before {
+    content: "";
+    display: block;
+    height: 0.58em;
+    width: 0.58em;
+    background: currentColor;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  }
+</style>`;
+
 function inlineBuiltAssets() {
   const indexFile = path.join(distDir, 'index.html');
   let html = fs.readFileSync(indexFile, 'utf8');
+
+  html = html
+    .replace(/\s*<link rel="preconnect" href="https:\/\/fonts\.(?:googleapis|gstatic)\.com"[^>]*>\s*/g, '\n')
+    .replace(/\s*<link href="https:\/\/fonts\.googleapis\.com[^"]+" rel="stylesheet"\s*\/?>\s*/g, '\n');
 
   html = html.replace(
     /<link rel="stylesheet" crossorigin href="([^"]+)"\s*\/?>/g,
@@ -39,6 +78,8 @@ function inlineBuiltAssets() {
     /<script type="module" crossorigin src="([^"]+)"><\/script>/g,
     (_match, src) => `<script type="module">\n${escapeScript(readDistAsset(src))}\n</script>`
   );
+
+  html = html.replace('</head>', `${offlineRuntimeStyle}\n  </head>`);
 
   fs.writeFileSync(indexFile, html);
 }
