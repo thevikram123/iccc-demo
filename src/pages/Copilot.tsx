@@ -69,7 +69,7 @@ export default function Copilot() {
 
     try {
       if (IS_OFFLINE_DEMO) {
-        setMessages(prev => [...prev, { role: 'ai', text: 'Preparing local Gemma 3 270M...', location: locationData }]);
+        setMessages(prev => [...prev, { role: 'ai', text: 'Preparing local LFM2.5 1.2B...', location: locationData }]);
         setIsTyping(false);
         const response = await generateOfflineCopilotResponse(userMsg, updateLastAiMessage);
         updateLastAiMessage(response);
@@ -145,7 +145,7 @@ export default function Copilot() {
           <h1 className="font-headline font-black text-3xl tracking-tighter text-black uppercase">AI COPILOT</h1>
           <p className="font-mono text-xs text-black mt-1 tracking-widest">
             VIDEO ANALYTICS & CITY INTELLIGENCE ASSISTANT
-            {IS_OFFLINE_DEMO && <span className="ml-3 bg-primary-fixed px-2 py-0.5 font-bold">LOCAL GEMMA MODE</span>}
+            {IS_OFFLINE_DEMO && <span className="ml-3 bg-primary-fixed px-2 py-0.5 font-bold">LOCAL LFM MODE</span>}
           </p>
         </div>
       </div>

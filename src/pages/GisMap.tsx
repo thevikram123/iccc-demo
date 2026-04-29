@@ -483,7 +483,7 @@ export default function GisMap() {
             </div>
 
             {/* Live Log Feed */}
-            <div className="bg-surface-container-lowest/90 backdrop-blur-md border border-black/5 flex flex-col transition-all duration-300 ${isLogsMinimized ? 'h-auto' : 'h-72'}">
+            <div className={`bg-surface-container-lowest/90 backdrop-blur-md border border-black/5 flex flex-col transition-all duration-300 ${isLogsMinimized ? 'h-auto' : 'h-72'}`}>
               <div className="px-4 py-2 border-b border-black/5 bg-surface-container flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <span className="text-black font-bold font-mono text-[10px] tracking-widest uppercase">AI_ANALYTICS_LOGS</span>

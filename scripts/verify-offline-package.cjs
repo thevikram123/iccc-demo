@@ -12,19 +12,17 @@ const transformersRuntimeFiles = [
   'ort-wasm-simd-threaded.mjs',
   'ort-wasm-simd-threaded.wasm',
 ];
-const gemmaModelFiles = [
-  'added_tokens.json',
+const lfmModelFiles = [
   'chat_template.jinja',
   'config.json',
   'generation_config.json',
-  'special_tokens_map.json',
   'tokenizer.json',
-  'tokenizer.model',
   'tokenizer_config.json',
-  'onnx/model_fp16.onnx',
-  'onnx/model_fp16.onnx_data',
+  'onnx/model_q4.onnx',
+  'onnx/model_q4.onnx_data',
 ];
 const googleFontsCssFile = path.join(repoRoot, 'dist-offline', 'vendor', 'google-fonts', 'fonts.css');
+const offlineMapTileDir = path.join(repoRoot, 'dist-offline', 'vendor', 'map-tiles', 'esri');
 const zipFile = path.join(repoRoot, 'offline-build', 'iccc-demo-offline.zip');
 
 function fail(message) {
@@ -39,7 +37,7 @@ const expectedFiles = [
   path.join(repoRoot, 'dist-offline', 'offline-server.cjs'),
   path.join(repoRoot, 'dist-offline', 'start-offline-demo.bat'),
   ...transformersRuntimeFiles.map((fileName) => path.join(repoRoot, 'dist-offline', 'vendor', fileName)),
-  ...gemmaModelFiles.map((fileName) => path.join(repoRoot, 'dist-offline', 'vendor', 'models', 'onnx-community', 'gemma-3-270m-it-ONNX', fileName)),
+  ...lfmModelFiles.map((fileName) => path.join(repoRoot, 'dist-offline', 'vendor', 'models', 'LiquidAI', 'LFM2.5-1.2B-Instruct-ONNX', fileName)),
 ];
 
 for (const file of expectedFiles) {
@@ -105,16 +103,24 @@ const checks = [
     pass: !html.includes('cdn.jsdelivr.net/npm/@huggingface/transformers'),
   },
   {
-    label: 'offline index points Gemma at bundled model files',
-    pass: html.includes('vendor/models/') && html.includes('dtype:"fp16"'),
+    label: 'offline index points LFM at bundled model files',
+    pass: html.includes('vendor/models/') && html.includes('LFM2.5-1.2B-Instruct-ONNX') && html.includes('dtype:"q4"'),
   },
   {
-    label: 'offline zip contains the bundled fp16 Gemma shard',
-    pass: fs.statSync(path.join(repoRoot, 'dist-offline', 'vendor', 'models', 'onnx-community', 'gemma-3-270m-it-ONNX', 'onnx', 'model_fp16.onnx_data')).size > 500 * 1024 * 1024,
+    label: 'offline index points map screens at bundled Esri tiles',
+    pass: html.includes('vendor/map-tiles/esri/{z}/{y}/{x}.jpg') && html.includes('Tiles &copy; Esri'),
+  },
+  {
+    label: 'offline package includes local Esri map tiles',
+    pass: fs.existsSync(offlineMapTileDir) && fs.readdirSync(offlineMapTileDir, { recursive: true }).some((fileName) => String(fileName).endsWith('.jpg')),
+  },
+  {
+    label: 'offline zip contains the bundled q4 LFM shard',
+    pass: fs.statSync(path.join(repoRoot, 'dist-offline', 'vendor', 'models', 'LiquidAI', 'LFM2.5-1.2B-Instruct-ONNX', 'onnx', 'model_q4.onnx_data')).size > 800 * 1024 * 1024,
   },
   {
     label: 'offline zip contains data',
-    pass: fs.statSync(zipFile).size > 500 * 1024 * 1024,
+    pass: fs.statSync(zipFile).size > 800 * 1024 * 1024,
   },
 ];
 

@@ -8,7 +8,7 @@ const outFile = path.join(outDir, 'iccc-demo-offline.zip');
 const docsFile = path.join(repoRoot, 'docs', 'offline-demo.md');
 const transformersDistUrl = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0/dist';
 const onnxRuntimeDistUrl = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0-dev.20260416-b7804b056c/dist';
-const gemmaModelBaseUrl = 'https://huggingface.co/onnx-community/gemma-3-270m-it-ONNX/resolve/main';
+const lfmModelBaseUrl = 'https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct-ONNX/resolve/main';
 const transformersRuntimeFiles = [
   { fileName: 'transformers.min.js', baseUrl: transformersDistUrl },
   { fileName: 'ort-wasm-simd-threaded.asyncify.mjs', baseUrl: onnxRuntimeDistUrl },
@@ -18,17 +18,14 @@ const transformersRuntimeFiles = [
   { fileName: 'ort-wasm-simd-threaded.mjs', baseUrl: onnxRuntimeDistUrl },
   { fileName: 'ort-wasm-simd-threaded.wasm', baseUrl: onnxRuntimeDistUrl },
 ].map((entry) => typeof entry === 'string' ? { fileName: entry, baseUrl: onnxRuntimeDistUrl } : entry);
-const gemmaModelFiles = [
-  'added_tokens.json',
+const lfmModelFiles = [
   'chat_template.jinja',
   'config.json',
   'generation_config.json',
-  'special_tokens_map.json',
   'tokenizer.json',
-  'tokenizer.model',
   'tokenizer_config.json',
-  'onnx/model_fp16.onnx',
-  'onnx/model_fp16.onnx_data',
+  'onnx/model_q4.onnx',
+  'onnx/model_q4.onnx_data',
 ];
 const googleFontCssUrls = [
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@100;300;400;500;600;700;800&family=JetBrains+Mono:wght@100;300;400;500;700&display=swap',
@@ -36,8 +33,17 @@ const googleFontCssUrls = [
 ];
 const googleFontsDir = path.join(distDir, 'vendor', 'google-fonts');
 const googleFontsCssFile = path.join(googleFontsDir, 'fonts.css');
-const offlineModelDir = path.join(distDir, 'vendor', 'models', 'onnx-community', 'gemma-3-270m-it-ONNX');
+const offlineModelDir = path.join(distDir, 'vendor', 'models', 'LiquidAI', 'LFM2.5-1.2B-Instruct-ONNX');
+const offlineMapTilesDir = path.join(distDir, 'vendor', 'map-tiles', 'esri');
 const offlineTransformersModuleScriptId = 'offline-transformers-module-source';
+const esriTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile';
+const offlineMapBounds = {
+  north: 28.76,
+  south: 28.48,
+  west: 77.03,
+  east: 77.32,
+};
+const offlineMapZooms = [11, 12, 13, 14, 15];
 const materialSymbolsOfflineCss = `
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';
@@ -105,13 +111,13 @@ async function ensureTransformersRuntime() {
   }
 }
 
-async function ensureGemmaModel() {
-  const missingModelFiles = gemmaModelFiles.filter((fileName) => !fs.existsSync(path.join(offlineModelDir, fileName)));
+async function ensureLfmModel() {
+  const missingModelFiles = lfmModelFiles.filter((fileName) => !fs.existsSync(path.join(offlineModelDir, fileName)));
   if (missingModelFiles.length === 0) return;
 
-  console.log('Downloading Gemma 3 270M fp16 ONNX model for the offline zip...');
+  console.log('Downloading LFM2.5 1.2B q4 ONNX model for the offline zip...');
   for (const fileName of missingModelFiles) {
-    await download(`${gemmaModelBaseUrl}/${fileName}`, path.join(offlineModelDir, fileName));
+    await download(`${lfmModelBaseUrl}/${fileName}`, path.join(offlineModelDir, fileName));
   }
 }
 
@@ -142,6 +148,44 @@ async function ensureGoogleFonts() {
   }
 
   fs.writeFileSync(googleFontsCssFile, `${combinedCss}\n${materialSymbolsOfflineCss}\n`);
+}
+
+function lonToTileX(lon, zoom) {
+  return Math.floor(((lon + 180) / 360) * 2 ** zoom);
+}
+
+function latToTileY(lat, zoom) {
+  const latRad = lat * Math.PI / 180;
+  return Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * 2 ** zoom);
+}
+
+function collectOfflineMapTiles() {
+  return offlineMapZooms.flatMap((zoom) => {
+    const minX = lonToTileX(offlineMapBounds.west, zoom);
+    const maxX = lonToTileX(offlineMapBounds.east, zoom);
+    const minY = latToTileY(offlineMapBounds.north, zoom);
+    const maxY = latToTileY(offlineMapBounds.south, zoom);
+    const tiles = [];
+
+    for (let x = minX; x <= maxX; x += 1) {
+      for (let y = minY; y <= maxY; y += 1) {
+        tiles.push({ zoom, x, y });
+      }
+    }
+
+    return tiles;
+  });
+}
+
+async function ensureOfflineMapTiles() {
+  const tiles = collectOfflineMapTiles();
+  const missingTiles = tiles.filter(({ zoom, x, y }) => !fs.existsSync(path.join(offlineMapTilesDir, String(zoom), String(y), `${x}.jpg`)));
+  if (missingTiles.length === 0) return;
+
+  console.log(`Downloading ${missingTiles.length} Esri map tiles for the offline zip...`);
+  for (const { zoom, x, y } of missingTiles) {
+    await download(`${esriTileUrl}/${zoom}/${y}/${x}`, path.join(offlineMapTilesDir, String(zoom), String(y), `${x}.jpg`));
+  }
 }
 
 function googleFontsAreComplete() {
@@ -235,6 +279,9 @@ const types = new Map([
   ['.js', 'text/javascript; charset=utf-8'],
   ['.mjs', 'text/javascript; charset=utf-8'],
   ['.json', 'application/json; charset=utf-8'],
+  ['.jpg', 'image/jpeg'],
+  ['.jpeg', 'image/jpeg'],
+  ['.png', 'image/png'],
   ['.wasm', 'application/wasm'],
   ['.onnx', 'application/octet-stream'],
   ['.onnx_data', 'application/octet-stream'],
@@ -369,7 +416,8 @@ function inlineBuiltAssets() {
 async function main() {
   await ensureTransformersRuntime();
   await ensureGoogleFonts();
-  await ensureGemmaModel();
+  await ensureOfflineMapTiles();
+  await ensureLfmModel();
   writeOfflineLauncher();
   inlineBuiltAssets();
   writeZip();
