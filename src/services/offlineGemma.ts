@@ -21,8 +21,11 @@ type TransformersCausalModel = {
   generate: (inputs: Record<string, unknown>) => Promise<unknown>;
 };
 
+type TextStreamer = new (tokenizer: TransformersTokenizer, options?: Record<string, unknown>) => unknown;
+
 type TransformersRuntime = {
   pipeline: TransformersPipeline;
+  TextStreamer?: TextStreamer;
   AutoModelForCausalLM?: {
     from_pretrained: (model: string, options?: Record<string, unknown>) => Promise<TransformersCausalModel>;
   };
@@ -62,7 +65,7 @@ const SYSTEM_INSTRUCTION = `You are SENTINEL, an AI assistant roleplaying as the
 
 Your role is to assist ICCC operators by analysing alerts raised by simulated video analytics modules across Delhi: crowd and mob gathering detection, ANPR, potholes, lighting failures, women safety, traffic violations, infrastructure health, and general anomaly detection.
 
-When an operator asks you to analyse an alert or city condition, respond as the live ICCC system with plausible fictional camera IDs, sensor readings, statistics, and next actions. Never say you lack access to data.
+When an operator asks you to analyse an alert or city condition, respond as the live ICCC system with plausible fictional camera IDs, sensor readings, statistics, and next actions. Never say you lack access to data. Keep responses concise: one short paragraph or up to three bullets per section.
 
 Format every response as plain text using:
 INCIDENT SUMMARY
@@ -218,8 +221,13 @@ function extractGeneratedText(generatedText: GeneratedText | undefined) {
   return '';
 }
 
-export async function generateOfflineCopilotResponse(message: string, onStatus?: (status: string) => void) {
+export async function generateOfflineCopilotResponse(
+  message: string,
+  onStatus?: (status: string) => void,
+  onPartial?: (text: string) => void
+) {
   if (IS_OFFLINE_DEMO) {
+    const transformers = await loadTransformersRuntime();
     const { tokenizer, model } = await getLfmModel(onStatus);
     onStatus?.('Generating local LFM2.5 response...');
 
@@ -231,12 +239,26 @@ export async function generateOfflineCopilotResponse(message: string, onStatus?:
       return_dict: true,
     });
     const inputLength = inputs.input_ids?.dims?.at(-1) ?? 0;
+    let streamedText = '';
+    const streamer = transformers.TextStreamer && onPartial
+      ? new transformers.TextStreamer(tokenizer, {
+          skip_prompt: true,
+          skip_special_tokens: true,
+          callback_function: (token: string) => {
+            streamedText = cleanResponse(`${streamedText}${token}`);
+            if (streamedText) onPartial(streamedText);
+          },
+        })
+      : undefined;
     const output = await model.generate({
       ...inputs,
-      max_new_tokens: 220,
+      max_new_tokens: 150,
       do_sample: false,
-      repetition_penalty: 1.08,
+      repetition_penalty: 1.05,
+      streamer,
     });
+
+    if (streamedText) return streamedText;
 
     const generated = Array.isArray(output)
       ? output[0]

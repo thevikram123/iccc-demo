@@ -71,7 +71,7 @@ export default function Copilot() {
       if (IS_OFFLINE_DEMO) {
         setMessages(prev => [...prev, { role: 'ai', text: 'Preparing local LFM2.5 1.2B...', location: locationData }]);
         setIsTyping(false);
-        const response = await generateOfflineCopilotResponse(userMsg, updateLastAiMessage);
+        const response = await generateOfflineCopilotResponse(userMsg, updateLastAiMessage, updateLastAiMessage);
         updateLastAiMessage(response);
         return;
       }
