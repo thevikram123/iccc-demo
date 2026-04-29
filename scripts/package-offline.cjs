@@ -12,8 +12,8 @@ const transformersRuntimeFiles = [
   'ort.bundle.min.mjs',
   'ort-wasm-simd-threaded.jsep.mjs',
   'ort-wasm-simd-threaded.jsep.wasm',
+  'ort-wasm-simd.wasm',
 ];
-const transformersFile = path.join(distDir, 'vendor', 'transformers.min.js');
 const googleFontCssUrls = [
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@100;300;400;500;600;700;800&family=JetBrains+Mono:wght@100;300;400;500;700&display=swap',
   'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap',
@@ -143,8 +143,10 @@ function inlineBuiltAssets() {
     (_match, href) => `<style>\n${escapeStyle(readDistAsset(href))}\n</style>`
   );
 
+  // Matches both <script type="module" src="..."> (ESM) and plain <script src="..."> (IIFE).
+  // Vite injects type="module" for ESM builds and a classic <script> for IIFE builds.
   html = html.replace(
-    /<script\b(?=[^>]*\btype=["']module["'])(?=[^>]*\bsrc=["']([^"']+)["'])[^>]*>\s*<\/script>/gi,
+    /<script\b(?=[^>]*\bsrc=["']([^"']+)["'])[^>]*>\s*<\/script>/gi,
     (_match, src) => {
       inlineScripts.push(`<script>\n${escapeScript(readDistAsset(src))}\n</script>`);
       return '';
@@ -155,8 +157,8 @@ function inlineBuiltAssets() {
     throw new Error(`Expected exactly one built app script to inline, found ${inlineScripts.length}.`);
   }
 
-  if (/<script\b[^>]*\btype=["']module["']/i.test(html) || /<link\b[^>]*\brel=["']stylesheet["']/i.test(html)) {
-    throw new Error('Offline index still contains external module script or stylesheet tags after inlining.');
+  if (/<script\b[^>]*\btype=["']module["']/i.test(html) || /<script\b[^>]*\bsrc=/i.test(html) || /<link\b[^>]*\brel=["']stylesheet["']/i.test(html)) {
+    throw new Error('Offline index still contains external script or stylesheet tags after inlining.');
   }
 
   html = html.replace('</head>', `${offlineRuntimeStyle}\n  </head>`);

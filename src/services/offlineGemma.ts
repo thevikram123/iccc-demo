@@ -74,6 +74,9 @@ async function getGenerator(onStatus?: (status: string) => void) {
         device: 'wasm',
         dtype: 'q4',
       });
+    }).catch((err) => {
+      generatorPromise = null;
+      throw err;
     });
   }
 
@@ -89,9 +92,8 @@ ${message}<end_of_turn>
 `;
 }
 
-function cleanResponse(raw: string, prompt: string) {
+function cleanResponse(raw: string) {
   return raw
-    .replace(prompt, '')
     .replace(/<end_of_turn>/g, '')
     .replace(/<start_of_turn>model/g, '')
     .trim();
@@ -111,6 +113,6 @@ export async function generateOfflineCopilotResponse(message: string, onStatus?:
   });
 
   const first = Array.isArray(output) ? output[0] : output;
-  const text = first?.generated_text ? cleanResponse(first.generated_text, prompt) : '';
+  const text = first?.generated_text ? cleanResponse(first.generated_text) : '';
   return text || 'INCIDENT SUMMARY\nLocal model returned an empty response.\n\nANALYTICS DATA\n- Status: local inference completed without text output\n\nRECOMMENDED ACTION\nRetry with a shorter operational query.';
 }
