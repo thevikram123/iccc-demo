@@ -104,9 +104,38 @@ function googleFontsAreComplete() {
   return referencedFonts.length > 0 && referencedFonts.every((fontFileName) => fs.existsSync(path.join(googleFontsDir, fontFileName)));
 }
 
+function getHtmlAttribute(tag, name) {
+  const pattern = new RegExp(`\\b${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i');
+  const match = tag.match(pattern);
+  return match ? match[1] || match[2] || match[3] || '' : '';
+}
+
+function isGoogleHostedFontUrl(href) {
+  try {
+    const url = new URL(href.startsWith('//') ? `https:${href}` : href);
+    const hostname = url.hostname.toLowerCase();
+    return ['http:', 'https:'].includes(url.protocol) && ['fonts.googleapis.com', 'fonts.gstatic.com'].includes(hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isRemoteAssetUrl(assetPath) {
+  return /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(assetPath);
+}
+
 function readDistAsset(assetPath) {
+  if (isRemoteAssetUrl(assetPath)) {
+    throw new Error(`Cannot inline remote asset URL from dist-offline/index.html: ${assetPath}`);
+  }
+
   const normalized = assetPath.replace(/^\.\//, '').replace(/^\//, '');
-  return fs.readFileSync(path.join(distDir, normalized), 'utf8');
+  const assetFile = path.resolve(distDir, normalized);
+  if (!assetFile.startsWith(`${distDir}${path.sep}`)) {
+    throw new Error(`Cannot inline asset outside dist-offline: ${assetPath}`);
+  }
+
+  return fs.readFileSync(assetFile, 'utf8');
 }
 
 function escapeStyle(css) {
@@ -148,10 +177,10 @@ function inlineBuiltAssets() {
   const inlineScripts = [];
 
   // Remove Google Fonts network requests (preconnect + stylesheet links).
-  // Both attribute orderings (href-first and rel-first) appear in vite output.
-  html = html
-    .replace(/\s*<link[^>]*\brel=["']preconnect["'][^>]*href=["']https:\/\/fonts\.(?:googleapis|gstatic)\.com["'][^>]*>\s*/gi, '\n')
-    .replace(/\s*<link[^>]*\bhref=["']https:\/\/fonts\.(?:googleapis|gstatic)\.com["'][^>]*>\s*/gi, '\n');
+  html = html.replace(/\s*<link\b[^>]*>\s*/gi, (tag) => {
+    const href = getHtmlAttribute(tag, 'href');
+    return isGoogleHostedFontUrl(href) ? '\n' : tag;
+  });
 
   html = html.replace('</head>', `<style id="offline-google-fonts">\n${escapeStyle(fs.readFileSync(googleFontsCssFile, 'utf8'))}\n</style>\n  </head>`);
 

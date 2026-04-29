@@ -35,7 +35,7 @@ if (process.exitCode) process.exit();
 const html = fs.readFileSync(indexFile, 'utf8');
 const fontCss = fs.readFileSync(googleFontsCssFile, 'utf8');
 const referencedFonts = [...fontCss.matchAll(/url\(vendor\/google-fonts\/([^)]+)\)/g)].map((match) => match[1]);
-const rootIndex = html.indexOf('<div id="root"></div>');
+const rootIndex = html.search(/<div\b[^>]*\bid=["']root["'][^>]*>/i);
 const firstScriptIndex = html.indexOf('<script>');
 const checks = [
   {
