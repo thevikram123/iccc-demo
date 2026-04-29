@@ -126,14 +126,32 @@ const offlineRuntimeStyle = `
   }
 </style>`;
 
+// Shown before React mounts; React replaces #root content on first render so this disappears.
+// If JS crashes before mounting, this message remains visible instead of a blank page.
+const offlineLoadingShell = `<div id="offline-loading-shell" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fff;font-family:monospace;font-size:13px;color:#555;z-index:9999;pointer-events:none">
+  <div style="text-align:center">
+    <div style="font-size:24px;margin-bottom:8px">⚙</div>
+    <div>Loading ICCC demo…</div>
+    <div id="offline-error-msg" style="display:none;color:#c00;margin-top:12px;max-width:480px"></div>
+  </div>
+</div>
+<script>
+window.addEventListener('error', function(e) {
+  var el = document.getElementById('offline-error-msg');
+  if (el) { el.style.display = 'block'; el.textContent = 'JS error: ' + e.message + ' (' + (e.filename||'') + ':' + e.lineno + ')'; }
+});
+<\/script>`;
+
 function inlineBuiltAssets() {
   const indexFile = path.join(distDir, 'index.html');
   let html = fs.readFileSync(indexFile, 'utf8');
   const inlineScripts = [];
 
+  // Remove Google Fonts network requests (preconnect + stylesheet links).
+  // Both attribute orderings (href-first and rel-first) appear in vite output.
   html = html
-    .replace(/\s*<link rel="preconnect" href="https:\/\/fonts\.(?:googleapis|gstatic)\.com"[^>]*>\s*/g, '\n')
-    .replace(/\s*<link href="https:\/\/fonts\.googleapis\.com[^"]+" rel="stylesheet"\s*\/?>\s*/g, '\n');
+    .replace(/\s*<link[^>]*\brel=["']preconnect["'][^>]*href=["']https:\/\/fonts\.(?:googleapis|gstatic)\.com["'][^>]*>\s*/gi, '\n')
+    .replace(/\s*<link[^>]*\bhref=["']https:\/\/fonts\.(?:googleapis|gstatic)\.com["'][^>]*>\s*/gi, '\n');
 
   html = html.replace('</head>', `<style id="offline-google-fonts">\n${escapeStyle(fs.readFileSync(googleFontsCssFile, 'utf8'))}\n</style>\n  </head>`);
 
@@ -161,6 +179,9 @@ function inlineBuiltAssets() {
   }
 
   html = html.replace('</head>', `${offlineRuntimeStyle}\n  </head>`);
+  // Loading shell goes first so it shows while the app script executes.
+  // React's createRoot replaces #root content, which removes the shell on successful mount.
+  html = html.replace('<div id="root"></div>', `<div id="root">${offlineLoadingShell}</div>`);
   html = html.replace('</body>', `${inlineScripts.join('\n')}\n  </body>`);
 
   fs.writeFileSync(indexFile, html);

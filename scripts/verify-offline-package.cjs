@@ -40,7 +40,7 @@ const firstScriptIndex = html.indexOf('<script>');
 const checks = [
   {
     label: 'offline index contains the React mount point',
-    pass: html.includes('<div id="root"></div>'),
+    pass: html.includes('<div id="root">') && html.includes('id="root"'),
   },
   {
     label: 'offline index contains an inline classic app script',
