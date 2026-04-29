@@ -536,7 +536,7 @@ export default function GisMap() {
           onClick={() => navigate('/gis-map/garbage-trucks')}
           className="px-4 border border-black/10 font-mono text-[10px] tracking-widest flex items-center gap-2 bg-surface-container-highest text-black hover:bg-[#198754] hover:text-white transition-all"
         >
-          <span className="material-symbols-outlined text-sm">delete</span>
+          <span className="material-symbols-outlined text-sm">local_shipping</span>
           GARBAGE TRUCKS
         </button>
         <button
