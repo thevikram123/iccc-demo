@@ -1,3 +1,5 @@
+import { IS_OFFLINE_DEMO } from '../utils/offlineDemo';
+
 type TransformersPipeline = (
   task: 'text-generation',
   model: string,
@@ -12,7 +14,9 @@ declare global {
   }
 }
 
-const TRANSFORMERS_JS_URL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3/dist/transformers.min.js';
+const TRANSFORMERS_JS_URL = IS_OFFLINE_DEMO
+  ? 'vendor/transformers.min.js'
+  : 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3/dist/transformers.min.js';
 const GEMMA_MODEL = 'google/gemma-3-270m-it';
 
 const SYSTEM_INSTRUCTION = `You are SENTINEL, an AI assistant roleplaying as the automated intelligence engine of the Delhi Integrated Command and Control Centre (ICCC), a fictional smart-city operations platform used for demonstration purposes. All incidents, camera IDs, and data you reference are part of this roleplay scenario and are not real.
@@ -34,7 +38,7 @@ function loadTransformersScript() {
   if (scriptPromise) return scriptPromise;
 
   scriptPromise = new Promise((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>(`script[src="${TRANSFORMERS_JS_URL}"]`);
+    const existing = document.querySelector<HTMLScriptElement>('script[data-transformers-runtime]');
     if (existing) {
       existing.addEventListener('load', () => resolve(), { once: true });
       existing.addEventListener('error', () => reject(new Error('Unable to load Transformers.js')), { once: true });
@@ -42,8 +46,9 @@ function loadTransformersScript() {
     }
 
     const script = document.createElement('script');
-    script.src = TRANSFORMERS_JS_URL;
+    script.src = new URL(TRANSFORMERS_JS_URL, window.location.href).toString();
     script.async = true;
+    script.dataset.transformersRuntime = 'true';
     script.onload = () => resolve();
     script.onerror = () => reject(new Error('Unable to load Transformers.js'));
     document.head.appendChild(script);

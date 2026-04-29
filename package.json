@@ -8,6 +8,7 @@
     "build": "vite build",
     "build:offline": "vite build --mode offline --outDir dist-offline",
     "package:offline": "npm run build:offline && node scripts/package-offline.cjs",
+    "verify:offline": "node scripts/verify-offline-package.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit"

@@ -26,5 +26,6 @@ The zip contains only static web files and documentation. It does not contain in
 ## Notes
 
 - The regular app still uses `VITE_WORKER_URL` and the Cloudflare Worker Gemini proxy.
-- The offline build sets `VITE_OFFLINE_DEMO=true`, switches routing to hash URLs, uses relative asset paths, removes remote font links, inlines built CSS/JS, and routes Copilot requests to `google/gemma-3-270m-it` through Transformers.js.
+- The offline build sets `VITE_OFFLINE_DEMO=true`, switches routing to hash URLs, uses relative asset paths, removes remote font links, inlines built CSS/JS as a classic browser script, and routes Copilot requests to `google/gemma-3-270m-it` through the bundled `vendor/transformers.min.js` runtime.
 - Map tiles use a local schematic grid in offline mode so the GIS screens remain usable without network tile requests.
+- `npm` is only needed where the zip is built. The laptop receiving the zip does not need Node, npm, an installer, an executable, or a local web server.

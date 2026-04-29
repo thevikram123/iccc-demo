@@ -32,6 +32,9 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           inlineDynamicImports: true,
+          entryFileNames: 'assets/offline-app.js',
+          format: 'iife',
+          name: 'ICCCOfflineDemo',
         },
       },
     } : undefined,
