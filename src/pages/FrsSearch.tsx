@@ -1316,7 +1316,7 @@ function StepCorrelation() {
                 <div key={i} className="flex flex-col items-center relative z-10 group w-32">
                    <div className="font-mono text-sm text-black mb-2 font-bold bg-surface-container px-3 py-1 border border-black/10 mx-auto">{item.time}</div>
                    <div className="w-20 h-20 rounded-full border-4 border-white bg-black shadow-md overflow-hidden group-hover:scale-110 transition-transform cursor-pointer relative">
-                      <img src={`/images/Raju ${i%4 + 1}.jpeg`} alt="cam" className="w-full h-full object-cover" />
+                      <img src={img(`/images/Raju ${i%4 + 1}.jpeg`)} alt="cam" className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-primary-fixed/0 group-hover:bg-primary-fixed/20 transition-colors"></div>
                    </div>
                    <div className="mt-4 text-center">
