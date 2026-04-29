@@ -5,6 +5,7 @@ const repoRoot = path.resolve(__dirname, '..');
 const indexFile = path.join(repoRoot, 'dist-offline', 'index.html');
 const transformersRuntimeFiles = [
   'transformers.min.js',
+  'ort.webgpu.bundle.min.mjs',
   'ort-wasm-simd-threaded.asyncify.mjs',
   'ort-wasm-simd-threaded.asyncify.wasm',
   'ort-wasm-simd-threaded.jsep.mjs',

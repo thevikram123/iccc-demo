@@ -11,6 +11,7 @@ const onnxRuntimeDistUrl = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0-
 const lfmModelBaseUrl = 'https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct-ONNX/resolve/main';
 const transformersRuntimeFiles = [
   { fileName: 'transformers.min.js', baseUrl: transformersDistUrl },
+  { fileName: 'ort.webgpu.bundle.min.mjs', baseUrl: onnxRuntimeDistUrl },
   { fileName: 'ort-wasm-simd-threaded.asyncify.mjs', baseUrl: onnxRuntimeDistUrl },
   { fileName: 'ort-wasm-simd-threaded.asyncify.wasm', baseUrl: onnxRuntimeDistUrl },
   'ort-wasm-simd-threaded.jsep.mjs',

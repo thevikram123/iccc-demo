@@ -38,10 +38,7 @@ type TransformersRuntime = {
     backends?: {
       onnx?: {
         wasm?: {
-          wasmPaths?: string | {
-            mjs?: string | URL;
-            wasm?: string | URL;
-          };
+          wasmPaths?: string;
         };
       };
     };
@@ -106,11 +103,7 @@ function configureRuntime(runtime: TransformersRuntime) {
 
   const wasm = runtime.env.backends?.onnx?.wasm;
   if (wasm) {
-    const vendorBaseUrl = new URL('vendor/', window.location.href).toString();
-    wasm.wasmPaths = {
-      mjs: new URL('ort-wasm-simd-threaded.jsep.mjs', vendorBaseUrl).toString(),
-      wasm: new URL('ort-wasm-simd-threaded.jsep.wasm', vendorBaseUrl).toString(),
-    };
+    wasm.wasmPaths = new URL('vendor/', window.location.href).toString();
   }
 }
 
