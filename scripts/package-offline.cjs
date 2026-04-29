@@ -6,12 +6,29 @@ const distDir = path.join(repoRoot, 'dist-offline');
 const outDir = path.join(repoRoot, 'offline-build');
 const outFile = path.join(outDir, 'iccc-demo-offline.zip');
 const docsFile = path.join(repoRoot, 'docs', 'offline-demo.md');
-const transformersDistUrl = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3/dist';
+const transformersDistUrl = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0/dist';
+const onnxRuntimeDistUrl = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0-dev.20260416-b7804b056c/dist';
+const gemmaModelBaseUrl = 'https://huggingface.co/onnx-community/gemma-3-270m-it-ONNX/resolve/main';
 const transformersRuntimeFiles = [
-  'transformers.min.js',
-  'ort.bundle.min.mjs',
+  { fileName: 'transformers.min.js', baseUrl: transformersDistUrl },
+  { fileName: 'ort-wasm-simd-threaded.asyncify.mjs', baseUrl: onnxRuntimeDistUrl },
+  { fileName: 'ort-wasm-simd-threaded.asyncify.wasm', baseUrl: onnxRuntimeDistUrl },
   'ort-wasm-simd-threaded.jsep.mjs',
   'ort-wasm-simd-threaded.jsep.wasm',
+  { fileName: 'ort-wasm-simd-threaded.mjs', baseUrl: onnxRuntimeDistUrl },
+  { fileName: 'ort-wasm-simd-threaded.wasm', baseUrl: onnxRuntimeDistUrl },
+].map((entry) => typeof entry === 'string' ? { fileName: entry, baseUrl: onnxRuntimeDistUrl } : entry);
+const gemmaModelFiles = [
+  'added_tokens.json',
+  'chat_template.jinja',
+  'config.json',
+  'generation_config.json',
+  'special_tokens_map.json',
+  'tokenizer.json',
+  'tokenizer.model',
+  'tokenizer_config.json',
+  'onnx/model_fp16.onnx',
+  'onnx/model_fp16.onnx_data',
 ];
 const googleFontCssUrls = [
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@100;300;400;500;600;700;800&family=JetBrains+Mono:wght@100;300;400;500;700&display=swap',
@@ -19,6 +36,7 @@ const googleFontCssUrls = [
 ];
 const googleFontsDir = path.join(distDir, 'vendor', 'google-fonts');
 const googleFontsCssFile = path.join(googleFontsDir, 'fonts.css');
+const offlineModelDir = path.join(distDir, 'vendor', 'models', 'onnx-community', 'gemma-3-270m-it-ONNX');
 const offlineTransformersModuleScriptId = 'offline-transformers-module-source';
 const materialSymbolsOfflineCss = `
 .material-symbols-outlined {
@@ -78,12 +96,22 @@ async function download(url, destination) {
 }
 
 async function ensureTransformersRuntime() {
-  const missingRuntimeFiles = transformersRuntimeFiles.filter((fileName) => !fs.existsSync(path.join(distDir, 'vendor', fileName)));
+  const missingRuntimeFiles = transformersRuntimeFiles.filter(({ fileName }) => !fs.existsSync(path.join(distDir, 'vendor', fileName)));
   if (missingRuntimeFiles.length === 0) return;
 
   console.log('Downloading Transformers.js runtime for the offline zip...');
-  for (const fileName of missingRuntimeFiles) {
-    await download(`${transformersDistUrl}/${fileName}`, path.join(distDir, 'vendor', fileName));
+  for (const { fileName, baseUrl } of missingRuntimeFiles) {
+    await download(`${baseUrl}/${fileName}`, path.join(distDir, 'vendor', fileName));
+  }
+}
+
+async function ensureGemmaModel() {
+  const missingModelFiles = gemmaModelFiles.filter((fileName) => !fs.existsSync(path.join(offlineModelDir, fileName)));
+  if (missingModelFiles.length === 0) return;
+
+  console.log('Downloading Gemma 3 270M fp16 ONNX model for the offline zip...');
+  for (const fileName of missingModelFiles) {
+    await download(`${gemmaModelBaseUrl}/${fileName}`, path.join(offlineModelDir, fileName));
   }
 }
 
@@ -167,11 +195,98 @@ function escapeScript(js) {
   return js.replace(/<\/script/gi, '<\\/script');
 }
 
+function fontMimeType(fontFileName) {
+  const ext = path.extname(fontFileName).toLowerCase();
+  if (ext === '.woff2') return 'font/woff2';
+  if (ext === '.woff') return 'font/woff';
+  if (ext === '.ttf') return 'font/ttf';
+  if (ext === '.otf') return 'font/otf';
+  return 'application/octet-stream';
+}
+
+function inlineFontFiles(css) {
+  return css.replace(/url\(vendor\/google-fonts\/([^)]+)\)/g, (_match, fontFileName) => {
+    const fontFile = path.join(googleFontsDir, fontFileName);
+    if (!fs.existsSync(fontFile)) {
+      throw new Error(`Cannot inline missing Google font file: ${fontFileName}`);
+    }
+
+    const encoded = fs.readFileSync(fontFile).toString('base64');
+    return `url(data:${fontMimeType(fontFileName)};base64,${encoded})`;
+  });
+}
+
 function localizeTransformersRuntimeSource(source) {
-  return source.replaceAll(
-    'https://cdn.jsdelivr.net/npm/@huggingface/transformers@${s.env.version}/dist/',
-    'vendor/'
-  );
+  return source
+    .replaceAll('https://cdn.jsdelivr.net/npm/@huggingface/transformers@${s.env.version}/dist/', 'vendor/')
+    .replaceAll('https://cdn.jsdelivr.net/npm/onnxruntime-web@${s.env.backends.onnx.wasm.wasmVersion}/dist/', 'vendor/');
+}
+
+function writeOfflineLauncher() {
+  const server = `const http = require('http');
+const fs = require('fs');
+const path = require('path');
+
+const root = __dirname;
+const port = Number(process.env.PORT || 4173);
+const types = new Map([
+  ['.html', 'text/html; charset=utf-8'],
+  ['.css', 'text/css; charset=utf-8'],
+  ['.js', 'text/javascript; charset=utf-8'],
+  ['.mjs', 'text/javascript; charset=utf-8'],
+  ['.json', 'application/json; charset=utf-8'],
+  ['.wasm', 'application/wasm'],
+  ['.onnx', 'application/octet-stream'],
+  ['.onnx_data', 'application/octet-stream'],
+  ['.model', 'application/octet-stream'],
+  ['.woff2', 'font/woff2'],
+]);
+
+http.createServer((req, res) => {
+  const url = new URL(req.url, 'http://127.0.0.1:' + port);
+  const relativePath = url.pathname === '/' ? 'index.html' : decodeURIComponent(url.pathname.slice(1));
+  const file = path.resolve(root, relativePath);
+
+  if (!file.startsWith(root + path.sep)) {
+    res.writeHead(403).end();
+    return;
+  }
+
+  fs.readFile(file, (error, data) => {
+    if (error) {
+      res.writeHead(404).end('Not found');
+      return;
+    }
+
+    res.writeHead(200, {
+      'Content-Type': types.get(path.extname(file)) || 'application/octet-stream',
+      'Content-Length': data.length,
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    });
+    res.end(data);
+  });
+}).listen(port, '127.0.0.1', () => {
+  console.log('ICCC offline demo running at http://127.0.0.1:' + port);
+});
+`;
+  const launcher = `@echo off
+setlocal
+cd /d "%~dp0"
+where node >nul 2>nul
+if errorlevel 1 (
+  echo Node.js is required to run the local AI model server.
+  echo Install Node.js from https://nodejs.org/ and run this file again.
+  pause
+  exit /b 1
+)
+start "" "http://127.0.0.1:4173"
+node offline-server.cjs
+pause
+`;
+
+  fs.writeFileSync(path.join(distDir, 'offline-server.cjs'), server);
+  fs.writeFileSync(path.join(distDir, 'start-offline-demo.bat'), launcher);
 }
 
 const offlineRuntimeStyle = `
@@ -213,7 +328,7 @@ function inlineBuiltAssets() {
 
   html = html.replace(
     '</head>',
-    () => `<style id="offline-google-fonts">\n${escapeStyle(fs.readFileSync(googleFontsCssFile, 'utf8'))}\n</style>\n  </head>`
+    () => `<style id="offline-google-fonts">\n${escapeStyle(inlineFontFiles(fs.readFileSync(googleFontsCssFile, 'utf8')))}\n</style>\n  </head>`
   );
 
   html = html.replace(
@@ -254,6 +369,8 @@ function inlineBuiltAssets() {
 async function main() {
   await ensureTransformersRuntime();
   await ensureGoogleFonts();
+  await ensureGemmaModel();
+  writeOfflineLauncher();
   inlineBuiltAssets();
   writeZip();
 }

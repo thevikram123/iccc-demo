@@ -5,9 +5,24 @@ const repoRoot = path.resolve(__dirname, '..');
 const indexFile = path.join(repoRoot, 'dist-offline', 'index.html');
 const transformersRuntimeFiles = [
   'transformers.min.js',
-  'ort.bundle.min.mjs',
+  'ort-wasm-simd-threaded.asyncify.mjs',
+  'ort-wasm-simd-threaded.asyncify.wasm',
   'ort-wasm-simd-threaded.jsep.mjs',
   'ort-wasm-simd-threaded.jsep.wasm',
+  'ort-wasm-simd-threaded.mjs',
+  'ort-wasm-simd-threaded.wasm',
+];
+const gemmaModelFiles = [
+  'added_tokens.json',
+  'chat_template.jinja',
+  'config.json',
+  'generation_config.json',
+  'special_tokens_map.json',
+  'tokenizer.json',
+  'tokenizer.model',
+  'tokenizer_config.json',
+  'onnx/model_fp16.onnx',
+  'onnx/model_fp16.onnx_data',
 ];
 const googleFontsCssFile = path.join(repoRoot, 'dist-offline', 'vendor', 'google-fonts', 'fonts.css');
 const zipFile = path.join(repoRoot, 'offline-build', 'iccc-demo-offline.zip');
@@ -21,7 +36,10 @@ const expectedFiles = [
   indexFile,
   googleFontsCssFile,
   zipFile,
+  path.join(repoRoot, 'dist-offline', 'offline-server.cjs'),
+  path.join(repoRoot, 'dist-offline', 'start-offline-demo.bat'),
   ...transformersRuntimeFiles.map((fileName) => path.join(repoRoot, 'dist-offline', 'vendor', fileName)),
+  ...gemmaModelFiles.map((fileName) => path.join(repoRoot, 'dist-offline', 'vendor', 'models', 'onnx-community', 'gemma-3-270m-it-ONNX', fileName)),
 ];
 
 for (const file of expectedFiles) {
@@ -64,7 +82,7 @@ const checks = [
   },
   {
     label: 'offline index does not depend on Google-hosted fonts',
-    pass: !html.includes('fonts.googleapis.com') && !html.includes('fonts.gstatic.com') && html.includes('vendor/google-fonts/'),
+    pass: !html.includes('fonts.googleapis.com') && !html.includes('fonts.gstatic.com') && html.includes('data:font/'),
   },
   {
     label: 'all referenced Google font files are included',
@@ -72,7 +90,11 @@ const checks = [
   },
   {
     label: 'offline Material Symbols CSS enables icon ligatures',
-    pass: fontCss.includes("font-feature-settings: 'liga'") && fontCss.includes("font-family: 'Material Symbols Outlined'"),
+    pass: html.includes("font-feature-settings: 'liga'") && html.includes("font-family: 'Material Symbols Outlined'"),
+  },
+  {
+    label: 'offline Google fonts are embedded as data URLs',
+    pass: html.includes('data:font/') && !html.includes('url(vendor/google-fonts/'),
   },
   {
     label: 'offline index does not contain external stylesheet tags',
@@ -83,8 +105,16 @@ const checks = [
     pass: !html.includes('cdn.jsdelivr.net/npm/@huggingface/transformers'),
   },
   {
+    label: 'offline index points Gemma at bundled model files',
+    pass: html.includes('vendor/models/') && html.includes('dtype:"fp16"'),
+  },
+  {
+    label: 'offline zip contains the bundled fp16 Gemma shard',
+    pass: fs.statSync(path.join(repoRoot, 'dist-offline', 'vendor', 'models', 'onnx-community', 'gemma-3-270m-it-ONNX', 'onnx', 'model_fp16.onnx_data')).size > 500 * 1024 * 1024,
+  },
+  {
     label: 'offline zip contains data',
-    pass: fs.statSync(zipFile).size > 1024 * 1024,
+    pass: fs.statSync(zipFile).size > 500 * 1024 * 1024,
   },
 ];
 
