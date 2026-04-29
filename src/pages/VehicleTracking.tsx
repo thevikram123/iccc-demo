@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { MapContainer, Marker, Polyline, Popup, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuditLog } from '../context/AuditLogContext';
 
 type Mode = 'garbage' | 'sprinkler';
@@ -215,16 +215,11 @@ function tracedRoute(vehicle: Vehicle, tick: number) {
 }
 
 export default function VehicleTracking({ mode }: { mode: Mode }) {
-  const navigate = useNavigate();
   const { addLog } = useAuditLog();
   const [tick, setTick] = useState(0);
   const [selectedId, setSelectedId] = useState(CONFIG[mode].vehicles[0].id);
   const config = CONFIG[mode];
   const selectedVehicle = config.vehicles.find((vehicle) => vehicle.id === selectedId) || config.vehicles[0];
-  const goBackToMap = () => {
-    addLog('NAVIGATION', 'Returned to GIS MAP from fleet tracking');
-    navigate('/gis-map', { replace: false });
-  };
 
   useEffect(() => {
     addLog('FLEET_TRACKING_OPENED', `${config.title} opened with GPS and CCTV evidence overlays`);
@@ -293,13 +288,15 @@ export default function VehicleTracking({ mode }: { mode: Mode }) {
 
       <div className="pointer-events-none absolute inset-0 bg-white/10" />
 
-      <button
-        onClick={goBackToMap}
+      <Link
+        to=".."
+        relative="path"
+        onClick={() => addLog('NAVIGATION', 'Returned to GIS MAP from fleet tracking')}
         className="absolute left-6 top-6 z-[700] flex items-center gap-2 rounded-sm border border-black bg-white px-3 py-2 font-mono text-[10px] font-black uppercase tracking-widest text-black shadow-lg transition-colors hover:bg-black hover:text-white"
       >
         <span className="material-symbols-outlined text-sm">arrow_back</span>
         Back to GIS Map
-      </button>
+      </Link>
 
       <section className="absolute left-6 top-20 z-[500] w-[min(560px,calc(100%-3rem))] rounded-sm border border-black/10 bg-white/95 p-5 shadow-2xl">
         <div className="flex items-start justify-between gap-4">
