@@ -532,6 +532,21 @@ export default function GisMap() {
           <span className="material-symbols-outlined">my_location</span>
         </button>
         <div className="h-12 w-px bg-white/10 mx-2"></div>
+        <button
+          onClick={() => navigate('/gis-map/garbage-trucks')}
+          className="px-4 border border-black/10 font-mono text-[10px] tracking-widest flex items-center gap-2 bg-surface-container-highest text-black hover:bg-[#198754] hover:text-white transition-all"
+        >
+          <span className="material-symbols-outlined text-sm">delete</span>
+          GARBAGE TRUCKS
+        </button>
+        <button
+          onClick={() => navigate('/gis-map/water-sprinklers')}
+          className="px-4 border border-black/10 font-mono text-[10px] tracking-widest flex items-center gap-2 bg-surface-container-highest text-black hover:bg-secondary hover:text-white transition-all"
+        >
+          <span className="material-symbols-outlined text-sm">water_drop</span>
+          WATER SPRINKLERS
+        </button>
+        <div className="h-12 w-px bg-white/10 mx-2"></div>
         <button 
           onClick={() => setShowAlerts(!showAlerts)}
           className={`px-4 border border-black/10 font-mono text-[10px] tracking-widest flex items-center gap-2 transition-all ${showAlerts ? 'bg-primary-fixed text-black' : 'bg-surface-container-highest text-black hover:bg-surface-bright'}`}
