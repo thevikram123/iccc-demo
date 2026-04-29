@@ -5,13 +5,12 @@ import { useAuditLog } from '../context/AuditLogContext';
 function buildAnalysisPrompt(anm: { id: string; type: string; location: string; desc: string; severity: string }) {
   const base = `ICCC alert ${anm.id} (severity: ${anm.severity}) has been escalated for AI analysis.`;
   const templates: Record<string, string> = {
-    MOB_GATHERING:        `${base} The crowd analytics module is reporting a large gathering at ${anm.location}. Sensor data: ${anm.desc} Provide a crowd management intelligence report.`,
+    VIDEO_TAMPERING:      `${base} The video integrity module has detected tampering on camera unit ${anm.location}. Feed analysis: ${anm.desc} Provide a camera security and field-inspection intelligence report.`,
+    FEED_LOSS:            `${base} The CCTV health monitor has reported a complete feed loss from camera cluster ${anm.location}. Diagnostics: ${anm.desc} Provide a video continuity and recovery intelligence report.`,
     NETWORK_DROP:         `${base} The network health monitor has detected connectivity degradation at node ${anm.location}. Diagnostics: ${anm.desc} Provide an infrastructure impact and recovery report.`,
     UNAUTHORIZED_ACCESS:  `${base} The access-control logging module at ${anm.location} has flagged repeated authentication failures on a monitored port. Log summary: ${anm.desc} Provide a security posture assessment and recommended response.`,
-    DISTRESS_DETECTED:    `${base} The women-safety analytics module has raised a distress flag at ${anm.location}. Detection details: ${anm.desc} Provide a safety response intelligence report.`,
-    TRAFFIC_VIOLATION:    `${base} The traffic violation detection module recorded infractions near ${anm.location}. Details: ${anm.desc} Provide an enforcement intelligence report.`,
-    POTHOLE_DETECTED:     `${base} The road-damage detection module flagged surface deterioration at ${anm.location}. Details: ${anm.desc} Provide a road maintenance intelligence report.`,
-    DARK_SPOT:            `${base} The lighting analytics module has identified an unlit zone at ${anm.location}. Details: ${anm.desc} Provide a public safety lighting report.`,
+    BANDWIDTH_CONGESTION: `${base} The backbone traffic monitor at ${anm.location} has reported sustained high utilisation affecting live camera streams. Metrics: ${anm.desc} Provide a network capacity and stream-prioritisation intelligence report.`,
+    CAMERA_OFFLINE:       `${base} The CCTV node management system reports camera unit ${anm.location} has gone offline unexpectedly. Last known state: ${anm.desc} Provide a fault-diagnosis and restoration intelligence report.`,
   };
   return templates[anm.type] ?? `${base} Module: ${anm.type}. Location: ${anm.location}. Details: ${anm.desc} Provide a full intelligence report.`;
 }
@@ -24,10 +23,12 @@ export default function Anomalies() {
   const [technicianTeam, setTechnicianTeam] = useState('FIELD_TEAM_ALPHA (Rapid Response)');
 
   const [anomalies, setAnomalies] = useState([
-    { id: 'ANM-092', type: 'MOB_GATHERING', location: 'ITO Intersection', severity: 'CRITICAL', time: '14:22:01 UTC', desc: 'Crowd density exceeded 500 persons in 50sqm area. Potential protest or unrest.', status: 'NEW' },
-    { id: 'ANM-093', type: 'NETWORK_DROP', location: 'SD_EDGE_44', severity: 'HIGH', time: '14:18:44 UTC', desc: 'Packet loss exceeded 15% threshold. Camera feed degraded.', status: 'NEW' },
-    { id: 'ANM-094', type: 'UNAUTHORIZED_ACCESS', location: 'JBX-CENTRAL-09', severity: 'CRITICAL', time: '14:15:12 UTC', desc: 'Multiple failed auth attempts detected on maintenance port.', status: 'NEW' },
-    { id: 'ANM-095', type: 'DISTRESS_DETECTED', location: 'Kashmere Gate', severity: 'MEDIUM', time: '14:10:05 UTC', desc: 'Woman walking alone at night. AI distress detection alert fired.', status: 'NEW' },
+    { id: 'ANM-092', type: 'VIDEO_TAMPERING', location: 'CAM-ITO-07', severity: 'CRITICAL', time: '14:22:01 UTC', desc: 'Camera lens obstructed — feed shows static black frame. Tamper-detection algorithm confidence: 97%. Physical inspection required.', status: 'NEW' },
+    { id: 'ANM-093', type: 'FEED_LOSS', location: 'CAM-CP-CLUSTER-3', severity: 'HIGH', time: '14:18:44 UTC', desc: '4 of 6 cameras in Connaught Place cluster simultaneously dropped. Last valid frame: 14:17:52 UTC. Possible fibre cut or PoE switch failure.', status: 'NEW' },
+    { id: 'ANM-094', type: 'UNAUTHORIZED_ACCESS', location: 'JBX-CENTRAL-09', severity: 'CRITICAL', time: '14:15:12 UTC', desc: '17 failed SSH auth attempts on DVR management port 22 from external IP. Brute-force pattern detected. Port currently open.', status: 'NEW' },
+    { id: 'ANM-095', type: 'NETWORK_DROP', location: 'SD_EDGE_44', severity: 'HIGH', time: '14:10:05 UTC', desc: 'Packet loss 18% on primary uplink. RTT spiked to 320ms. Downstream camera feeds from sectors 7-9 degraded to sub-1fps.', status: 'NEW' },
+    { id: 'ANM-096', type: 'BANDWIDTH_CONGESTION', location: 'BACKBONE-NODE-12', severity: 'MEDIUM', time: '14:06:30 UTC', desc: 'Uplink utilisation at 94% for 8 consecutive minutes. HD stream quality auto-downgraded on 12 cameras. Root cause unknown.', status: 'NEW' },
+    { id: 'ANM-097', type: 'CAMERA_OFFLINE', location: 'CAM-LAJPAT-02', severity: 'MEDIUM', time: '14:01:17 UTC', desc: 'Camera unresponsive to ICMP ping and ONVIF health-check. Last heartbeat 14:00:58 UTC. Power supply fault suspected.', status: 'NEW' },
   ]);
 
   const severityColors = {
