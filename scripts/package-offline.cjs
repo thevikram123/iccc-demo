@@ -12,7 +12,6 @@ const transformersRuntimeFiles = [
   'ort.bundle.min.mjs',
   'ort-wasm-simd-threaded.jsep.mjs',
   'ort-wasm-simd-threaded.jsep.wasm',
-  'ort-wasm-simd-threaded.wasm',
 ];
 const googleFontCssUrls = [
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@100;300;400;500;600;700;800&family=JetBrains+Mono:wght@100;300;400;500;700&display=swap',
