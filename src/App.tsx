@@ -13,6 +13,7 @@ import Alerts from './pages/Alerts';
 import FrsSearch from './pages/FrsSearch';
 import SurveyTracking from './pages/SurveyTracking';
 import Login from './pages/Login';
+import VehicleTracking from './pages/VehicleTracking';
 import { AuditLogProvider } from './context/AuditLogContext';
 
 export default function App() {
@@ -29,6 +30,8 @@ export default function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="gis-map" element={<GisMap />} />
+            <Route path="gis-map/garbage-trucks" element={<VehicleTracking mode="garbage" />} />
+            <Route path="gis-map/water-sprinklers" element={<VehicleTracking mode="sprinkler" />} />
             <Route path="infrastructure" element={<Infrastructure />} />
             <Route path="survey-tracking" element={<SurveyTracking />} />
             <Route path="area-diagnostics" element={<AreaDiagnostics />} />
