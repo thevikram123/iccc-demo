@@ -4,6 +4,7 @@ const path = require('path');
 const repoRoot = path.resolve(__dirname, '..');
 const indexFile = path.join(repoRoot, 'dist-offline', 'index.html');
 const transformersFile = path.join(repoRoot, 'dist-offline', 'vendor', 'transformers.min.js');
+const googleFontsCssFile = path.join(repoRoot, 'dist-offline', 'vendor', 'google-fonts', 'fonts.css');
 const zipFile = path.join(repoRoot, 'offline-build', 'iccc-demo-offline.zip');
 
 function fail(message) {
@@ -11,7 +12,7 @@ function fail(message) {
   process.exitCode = 1;
 }
 
-for (const file of [indexFile, transformersFile, zipFile]) {
+for (const file of [indexFile, transformersFile, googleFontsCssFile, zipFile]) {
   if (!fs.existsSync(file)) {
     fail(`Missing expected offline artifact: ${path.relative(repoRoot, file)}`);
   }
@@ -35,7 +36,7 @@ const checks = [
   },
   {
     label: 'offline index does not depend on Google-hosted fonts',
-    pass: !html.includes('fonts.googleapis.com') && !html.includes('fonts.gstatic.com'),
+    pass: !html.includes('fonts.googleapis.com') && !html.includes('fonts.gstatic.com') && html.includes('vendor/google-fonts/'),
   },
   {
     label: 'offline index does not depend on CDN-hosted Transformers.js',

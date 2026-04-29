@@ -8,6 +8,12 @@ const outFile = path.join(outDir, 'iccc-demo-offline.zip');
 const docsFile = path.join(repoRoot, 'docs', 'offline-demo.md');
 const transformersUrl = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3/dist/transformers.min.js';
 const transformersFile = path.join(distDir, 'vendor', 'transformers.min.js');
+const googleFontCssUrls = [
+  'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@100;300;400;500;600;700;800&family=JetBrains+Mono:wght@100;300;400;500;700&display=swap',
+  'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap',
+];
+const googleFontsDir = path.join(distDir, 'vendor', 'google-fonts');
+const googleFontsCssFile = path.join(googleFontsDir, 'fonts.css');
 
 if (!fs.existsSync(distDir)) {
   throw new Error('dist-offline does not exist. Run npm run build:offline first.');
@@ -15,38 +21,71 @@ if (!fs.existsSync(distDir)) {
 
 fs.mkdirSync(outDir, { recursive: true });
 
-function download(url, destination) {
+function fetchBuffer(url) {
   const protocol = url.startsWith('https:') ? require('https') : require('http');
-  fs.mkdirSync(path.dirname(destination), { recursive: true });
 
   return new Promise((resolve, reject) => {
-    const request = protocol.get(url, (response) => {
+    const request = protocol.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (response) => {
       if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
         response.resume();
-        download(response.headers.location, destination).then(resolve, reject);
+        fetchBuffer(new URL(response.headers.location, url).toString()).then(resolve, reject);
         return;
       }
 
       if (response.statusCode !== 200) {
         response.resume();
-        reject(new Error(`Failed to download ${url}: HTTP ${response.statusCode}`));
+        reject(new Error(`Failed to fetch ${url}: HTTP ${response.statusCode}`));
         return;
       }
 
-      const file = fs.createWriteStream(destination);
-      response.pipe(file);
-      file.on('finish', () => file.close(resolve));
-      file.on('error', reject);
+      const chunks = [];
+      response.on('data', (chunk) => chunks.push(chunk));
+      response.on('end', () => resolve(Buffer.concat(chunks)));
+      response.on('error', reject);
     });
 
     request.on('error', reject);
   });
 }
 
+async function download(url, destination) {
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
+  fs.writeFileSync(destination, await fetchBuffer(url));
+}
+
 async function ensureTransformersRuntime() {
   if (fs.existsSync(transformersFile)) return;
   console.log('Downloading Transformers.js runtime for the offline zip...');
   await download(transformersUrl, transformersFile);
+}
+
+async function ensureGoogleFonts() {
+  if (fs.existsSync(googleFontsCssFile)) return;
+
+  console.log('Downloading Google font and Material Symbols assets for the offline zip...');
+  fs.mkdirSync(googleFontsDir, { recursive: true });
+
+  let combinedCss = '';
+  let fontIndex = 0;
+
+  for (const cssUrl of googleFontCssUrls) {
+    let css = (await fetchBuffer(cssUrl)).toString('utf8');
+    const fontUrls = [...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com[^)]+)\)/g)].map((match) => match[1]);
+
+    for (const fontUrl of fontUrls) {
+      const parsed = new URL(fontUrl);
+      const ext = path.extname(parsed.pathname) || '.woff2';
+      const fontFileName = `google-font-${fontIndex}${ext}`;
+      const fontFile = path.join(googleFontsDir, fontFileName);
+      await download(fontUrl, fontFile);
+      css = css.replaceAll(fontUrl, `vendor/google-fonts/${fontFileName}`);
+      fontIndex += 1;
+    }
+
+    combinedCss += `${css}\n`;
+  }
+
+  fs.writeFileSync(googleFontsCssFile, combinedCss);
 }
 
 function readDistAsset(assetPath) {
@@ -69,32 +108,6 @@ const offlineRuntimeStyle = `
     --offline-font-headline: Space Grotesk, Segoe UI, Arial, sans-serif;
     --offline-font-mono: JetBrains Mono, Consolas, monospace;
   }
-
-  .material-symbols-outlined {
-    align-items: center;
-    border: 1px solid currentColor;
-    display: inline-flex;
-    font-family: var(--offline-font-mono);
-    font-size: 0 !important;
-    font-style: normal;
-    font-weight: 700;
-    height: 1.35em;
-    justify-content: center;
-    line-height: 1;
-    min-width: 1.35em;
-    overflow: hidden;
-    text-transform: uppercase;
-    vertical-align: -0.18em;
-  }
-
-  .material-symbols-outlined::before {
-    content: "";
-    display: block;
-    height: 0.58em;
-    width: 0.58em;
-    background: currentColor;
-    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
-  }
 </style>`;
 
 function inlineBuiltAssets() {
@@ -104,6 +117,8 @@ function inlineBuiltAssets() {
   html = html
     .replace(/\s*<link rel="preconnect" href="https:\/\/fonts\.(?:googleapis|gstatic)\.com"[^>]*>\s*/g, '\n')
     .replace(/\s*<link href="https:\/\/fonts\.googleapis\.com[^"]+" rel="stylesheet"\s*\/?>\s*/g, '\n');
+
+  html = html.replace('</head>', `<style id="offline-google-fonts">\n${escapeStyle(fs.readFileSync(googleFontsCssFile, 'utf8'))}\n</style>\n  </head>`);
 
   html = html.replace(
     /<link rel="stylesheet" crossorigin href="([^"]+)"\s*\/?>/g,
@@ -122,6 +137,7 @@ function inlineBuiltAssets() {
 
 async function main() {
   await ensureTransformersRuntime();
+  await ensureGoogleFonts();
   inlineBuiltAssets();
   writeZip();
 }
