@@ -4,6 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Link } from 'react-router-dom';
 import { useAuditLog } from '../context/AuditLogContext';
+import { IS_OFFLINE_DEMO, OFFLINE_TILE_ATTRIBUTION, OFFLINE_TILE_URL } from '../utils/offlineDemo';
 
 type Mode = 'garbage' | 'sprinkler';
 type LatLng = [number, number];
@@ -245,8 +246,8 @@ export default function VehicleTracking({ mode }: { mode: Mode }) {
         <MapContainer center={config.center} zoom={config.zoom} zoomControl={false} style={{ height: '100%', width: '100%', background: '#ffffff' }}>
           <MapSizeUpdater />
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url={IS_OFFLINE_DEMO ? OFFLINE_TILE_URL : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"}
+            attribution={IS_OFFLINE_DEMO ? OFFLINE_TILE_ATTRIBUTION : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'}
           />
 
           {config.vehicles.map((vehicle) => (

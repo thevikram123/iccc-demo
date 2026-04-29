@@ -5,6 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuditLog } from '../context/AuditLogContext';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line } from 'recharts';
+import { IS_OFFLINE_DEMO, OFFLINE_TILE_ATTRIBUTION, OFFLINE_TILE_URL } from '../utils/offlineDemo';
 
 function MapUpdater({ selectedSite }: { selectedSite: any }) {
   const map = useMap();
@@ -176,8 +177,8 @@ export default function SurveyTracking() {
         >
           <MapUpdater selectedSite={selectedSite} />
           <TileLayer
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            url={IS_OFFLINE_DEMO ? OFFLINE_TILE_URL : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}
+            attribution={IS_OFFLINE_DEMO ? OFFLINE_TILE_ATTRIBUTION : 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'}
             className="opacity-60 saturate-50"
           />
           {MOCK_SITES.map(site => (

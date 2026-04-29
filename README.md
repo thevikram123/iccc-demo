@@ -48,3 +48,15 @@ Below is an overview of the key directories and files in this project:
 - React Router DOM
 - Recharts (for Dashboard data visualization)
 - React Leaflet (for Interactive Maps & Heatmaps)
+
+## Offline Demo Zip
+
+This repo also includes a side build for laptop demos in low-connectivity environments. It leaves the main Cloudflare Worker/Gemini deployment unchanged.
+
+```bash
+npm run package:offline
+```
+
+The command builds `dist-offline/` with local-file friendly routes and relative assets, then writes `offline-build/iccc-demo-offline.zip`. Extract the zip and open `index.html` in a Chromium-based browser. The first AI Copilot run needs internet to cache Transformers.js and `google/gemma-3-270m-it`; subsequent runs use the browser cache and do not call the Cloudflare Worker.
+
+More detail is in `docs/offline-demo.md`.

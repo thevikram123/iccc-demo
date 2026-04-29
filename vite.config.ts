@@ -5,15 +5,18 @@ import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
+  const isOfflineDemo = mode === 'offline' || process.env.VITE_OFFLINE_DEMO === 'true' || env.VITE_OFFLINE_DEMO === 'true';
   const repoName = process.env.GITHUB_REPOSITORY
     ? '/' + process.env.GITHUB_REPOSITORY.split('/')[1]
     : '';
+  const base = isOfflineDemo ? './' : repoName + '/';
   return {
-    base: repoName + '/',
+    base,
     plugins: [react(), tailwindcss()],
     define: {
-      'process.env.BASE_URL': JSON.stringify(repoName),
+      'process.env.BASE_URL': JSON.stringify(isOfflineDemo ? '.' : repoName),
       'import.meta.env.VITE_WORKER_URL': JSON.stringify(process.env.VITE_WORKER_URL || env.VITE_WORKER_URL || ''),
+      'import.meta.env.VITE_OFFLINE_DEMO': JSON.stringify(isOfflineDemo ? 'true' : 'false'),
     },
     resolve: {
       alias: {

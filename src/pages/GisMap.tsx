@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import 'leaflet.heat';
 import { useAuditLog } from '../context/AuditLogContext';
+import { IS_OFFLINE_DEMO, OFFLINE_TILE_ATTRIBUTION, OFFLINE_TILE_URL } from '../utils/offlineDemo';
 
 function MapUpdater() {
   const map = useMap();
@@ -29,13 +30,15 @@ function MapUpdater() {
   return null;
 }
 
-// Fix for default marker icon in react-leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+// Fix for default marker icon in react-leaflet when online tile assets are available.
+if (!IS_OFFLINE_DEMO) {
+  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  });
+}
 
 // Custom icon for nodes
 const nodeIcon = new L.DivIcon({
@@ -218,13 +221,13 @@ export default function GisMap() {
           {/* Realistic Satellite Tiles */}
           {layers.satellite ? (
             <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              attribution='Tiles &copy; Esri'
+              url={IS_OFFLINE_DEMO ? OFFLINE_TILE_URL : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}
+              attribution={IS_OFFLINE_DEMO ? OFFLINE_TILE_ATTRIBUTION : 'Tiles &copy; Esri'}
             />
           ) : (
             <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              url={IS_OFFLINE_DEMO ? OFFLINE_TILE_URL : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"}
+              attribution={IS_OFFLINE_DEMO ? OFFLINE_TILE_ATTRIBUTION : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'}
             />
           )}
           {/* Subtle Overlay to make the map look clean */}

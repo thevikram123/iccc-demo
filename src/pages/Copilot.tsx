@@ -6,6 +6,8 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuditLog } from '../context/AuditLogContext';
+import { generateOfflineCopilotResponse } from '../services/offlineGemma';
+import { IS_OFFLINE_DEMO, OFFLINE_TILE_ATTRIBUTION, OFFLINE_TILE_URL } from '../utils/offlineDemo';
 
 const WORKER_URL = import.meta.env.VITE_WORKER_URL as string | undefined;
 
@@ -15,15 +17,23 @@ interface Message {
   location?: [number, number];
 }
 
-const customIcon = new L.Icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
+const customIcon = IS_OFFLINE_DEMO
+  ? new L.DivIcon({
+      className: 'bg-transparent',
+      html: '<div class="h-6 w-6 rounded-full border-2 border-black bg-[#ffe600] shadow-[0_0_16px_rgba(255,230,0,0.9)]"></div>',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+      popupAnchor: [0, -12],
+    })
+  : new L.Icon({
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
 
 export default function Copilot() {
   const location = useLocation();
@@ -40,6 +50,14 @@ export default function Copilot() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const updateLastAiMessage = (text: string) => {
+    setMessages(prev => {
+      const msgs = [...prev];
+      msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], text };
+      return msgs;
+    });
+  };
+
   const handleSendMessage = async (messageText: string = input, locationData?: [number, number]) => {
     if (!messageText.trim()) return;
 
@@ -50,7 +68,15 @@ export default function Copilot() {
     addLog('AI_INTERACTION', `User sent message to Copilot: "${userMsg}"`);
 
     try {
-      if (!WORKER_URL) throw new Error('VITE_WORKER_URL is not set — add it to your environment and redeploy.');
+      if (IS_OFFLINE_DEMO) {
+        setMessages(prev => [...prev, { role: 'ai', text: 'Preparing local Gemma 3 270M...', location: locationData }]);
+        setIsTyping(false);
+        const response = await generateOfflineCopilotResponse(userMsg, updateLastAiMessage);
+        updateLastAiMessage(response);
+        return;
+      }
+
+      if (!WORKER_URL) throw new Error('VITE_WORKER_URL is not set - add it to your environment and redeploy.');
 
       const response = await fetch(WORKER_URL, {
         method: 'POST',
@@ -92,11 +118,7 @@ export default function Copilot() {
             const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
             if (text) {
               accumulatedText += text;
-              setMessages(prev => {
-                const msgs = [...prev];
-                msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], text: accumulatedText };
-                return msgs;
-              });
+              updateLastAiMessage(accumulatedText);
             }
           } catch { /* skip malformed SSE chunk */ }
         }
@@ -121,7 +143,10 @@ export default function Copilot() {
       <div className="flex justify-between items-end p-8 pb-4 border-b border-black/10">
         <div>
           <h1 className="font-headline font-black text-3xl tracking-tighter text-black uppercase">AI COPILOT</h1>
-          <p className="font-mono text-xs text-black mt-1 tracking-widest">VIDEO ANALYTICS & CITY INTELLIGENCE ASSISTANT</p>
+          <p className="font-mono text-xs text-black mt-1 tracking-widest">
+            VIDEO ANALYTICS & CITY INTELLIGENCE ASSISTANT
+            {IS_OFFLINE_DEMO && <span className="ml-3 bg-primary-fixed px-2 py-0.5 font-bold">LOCAL GEMMA MODE</span>}
+          </p>
         </div>
       </div>
 
@@ -142,8 +167,8 @@ export default function Copilot() {
                         zoomControl={false}
                       >
                         <TileLayer
-                          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                          attribution='Tiles &copy; Esri'
+                          url={IS_OFFLINE_DEMO ? OFFLINE_TILE_URL : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}
+                          attribution={IS_OFFLINE_DEMO ? OFFLINE_TILE_ATTRIBUTION : 'Tiles &copy; Esri'}
                         />
                         <div className="absolute inset-0 bg-white/40 pointer-events-none z-[400]" />
                         <Marker position={msg.location} icon={customIcon}>
