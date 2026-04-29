@@ -8,16 +8,12 @@ export default defineConfig(({ mode }) => {
   const repoName = process.env.GITHUB_REPOSITORY
     ? '/' + process.env.GITHUB_REPOSITORY.split('/')[1]
     : '';
-  const rawKey = process.env.GEMINI_API_KEY || env.GEMINI_API_KEY || '';
-  // Base64-encode so the raw AIza... pattern never appears in the bundle
-  // and secret scanners don't flag the deployed JS file.
-  const encodedKey = Buffer.from(rawKey).toString('base64');
   return {
     base: repoName + '/',
     plugins: [react(), tailwindcss()],
     define: {
-      '__GK__': JSON.stringify(encodedKey),
       'process.env.BASE_URL': JSON.stringify(repoName),
+      'import.meta.env.VITE_WORKER_URL': JSON.stringify(process.env.VITE_WORKER_URL || env.VITE_WORKER_URL || ''),
     },
     resolve: {
       alias: {

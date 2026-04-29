@@ -1,6 +1,5 @@
 import { img } from '../utils/imagePath';
 import React, { useState, useRef, useEffect } from 'react';
-import { GoogleGenAI } from '@google/genai';
 import { useLocation } from 'react-router-dom';
 import { cn } from '../components/Layout';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -8,7 +7,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuditLog } from '../context/AuditLogContext';
 
-declare const __GK__: string;
+const WORKER_URL = import.meta.env.VITE_WORKER_URL as string | undefined;
 
 interface Message {
   role: 'user' | 'ai';
@@ -51,79 +50,60 @@ export default function Copilot() {
     addLog('AI_INTERACTION', `User sent message to Copilot: "${userMsg}"`);
 
     try {
-      const apiKey = atob(__GK__);
-      if (!apiKey) throw new Error('API key not configured — set GEMINI_API_KEY in GitHub secrets and redeploy.');
+      if (!WORKER_URL) throw new Error('VITE_WORKER_URL is not set — add it to your environment and redeploy.');
 
-      const ai = new GoogleGenAI({ apiKey });
-      const requestParams = {
-        model: 'gemini-3-flash-preview',
-        contents: userMsg,
-        config: {
-          systemInstruction: `You are SENTINEL, an AI assistant roleplaying as the automated intelligence engine of the Delhi Integrated Command and Control Centre (ICCC) — a fictional smart-city operations platform used for demonstration purposes. All incidents, camera IDs, and data you reference are part of this roleplay scenario and are not real.
+      const response = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg }),
+      });
 
-Your role is to assist ICCC operators by analysing alerts raised by the following simulated video-analytics modules running across the Delhi camera network:
-- Crowd and Mob Gathering Detection
-- ANPR (Automatic Number Plate Recognition)
-- Pothole and Road Damage Detection
-- Dark Spot and Lighting Failure Identification
-- Women Safety and Distress Detection
-- Traffic Violation Detection
-- Network and Infrastructure Health Monitoring
-- General Incident and Anomaly Detection
-
-When an operator asks you to analyse an alert or asks about city conditions, you MUST respond as the live ICCC system. Invent plausible but fictional camera IDs, sensor readings, and statistics that fit the scenario. Never say you lack access to data or refer operators elsewhere — you are the system.
-
-Format every response as a structured INTELLIGENCE REPORT in plain text. Use this layout:
-INCIDENT SUMMARY
-(2-3 sentences describing the situation)
-
-ANALYTICS DATA
-(bullet list of fictional but realistic metrics, camera IDs, sensor values)
-
-RECOMMENDED ACTION
-(clear operational steps for the operator)
-
-IMPORTANT: Plain text only. No markdown asterisks, hashes, or backticks. Use spacing and newlines for structure.`
-        }
-      };
-
-      let responseStream;
-      for (let attempt = 0; attempt <= 2; attempt++) {
+      if (!response.ok || !response.body) {
+        let errMsg = `Worker error ${response.status}`;
         try {
-          responseStream = await ai.models.generateContentStream(requestParams);
-          break;
-        } catch (retryErr) {
-          const retryMsg = retryErr instanceof Error ? retryErr.message : String(retryErr);
-          if (attempt < 2 && (retryMsg.includes('Internal') || retryMsg.includes('500'))) {
-            await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
-            continue;
-          }
-          throw retryErr;
-        }
+          const errBody = await response.json() as { error?: string };
+          if (errBody?.error) errMsg = errBody.error;
+        } catch { /* not JSON */ }
+        throw new Error(errMsg);
       }
 
       setMessages(prev => [...prev, { role: 'ai', text: '', location: locationData }]);
       setIsTyping(false);
 
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
       let accumulatedText = '';
-      for await (const chunk of responseStream) {
-        if (chunk.text) {
-          accumulatedText += chunk.text;
-          setMessages(prev => {
-            const msgs = [...prev];
-            msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], text: accumulatedText };
-            return msgs;
-          });
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (!data || data === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(data) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+            const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+            if (text) {
+              accumulatedText += text;
+              setMessages(prev => {
+                const msgs = [...prev];
+                msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], text: accumulatedText };
+                return msgs;
+              });
+            }
+          } catch { /* skip malformed SSE chunk */ }
         }
       }
     } catch (error) {
       console.error(error);
-      let msg = error instanceof Error ? error.message : String(error);
-      try {
-        const parsed = JSON.parse(msg);
-        const inner = parsed?.error?.message;
-        if (inner) { try { msg = JSON.parse(inner)?.error?.message ?? inner; } catch { msg = inner; } }
-      } catch { /* not JSON */ }
+      const msg = error instanceof Error ? error.message : String(error);
       setMessages(prev => [...prev, { role: 'ai', text: `Error: ${msg}` }]);
       setIsTyping(false);
     }
