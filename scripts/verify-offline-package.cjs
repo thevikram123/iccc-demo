@@ -21,6 +21,8 @@ for (const file of [indexFile, transformersFile, googleFontsCssFile, zipFile]) {
 if (process.exitCode) process.exit();
 
 const html = fs.readFileSync(indexFile, 'utf8');
+const rootIndex = html.indexOf('<div id="root"></div>');
+const firstScriptIndex = html.indexOf('<script>');
 const checks = [
   {
     label: 'offline index contains the React mount point',
@@ -29,6 +31,10 @@ const checks = [
   {
     label: 'offline index contains an inline classic app script',
     pass: /<script>\s*[\s\S]+<\/script>/.test(html) && !html.includes('type="module"'),
+  },
+  {
+    label: 'offline app script runs after the React mount point exists',
+    pass: rootIndex !== -1 && firstScriptIndex > rootIndex,
   },
   {
     label: 'offline index does not point at source files',

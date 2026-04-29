@@ -113,6 +113,7 @@ const offlineRuntimeStyle = `
 function inlineBuiltAssets() {
   const indexFile = path.join(distDir, 'index.html');
   let html = fs.readFileSync(indexFile, 'utf8');
+  const inlineScripts = [];
 
   html = html
     .replace(/\s*<link rel="preconnect" href="https:\/\/fonts\.(?:googleapis|gstatic)\.com"[^>]*>\s*/g, '\n')
@@ -127,10 +128,14 @@ function inlineBuiltAssets() {
 
   html = html.replace(
     /<script type="module" crossorigin src="([^"]+)"><\/script>/g,
-    (_match, src) => `<script>\n${escapeScript(readDistAsset(src))}\n</script>`
+    (_match, src) => {
+      inlineScripts.push(`<script>\n${escapeScript(readDistAsset(src))}\n</script>`);
+      return '';
+    }
   );
 
   html = html.replace('</head>', `${offlineRuntimeStyle}\n  </head>`);
+  html = html.replace('</body>', `${inlineScripts.join('\n')}\n  </body>`);
 
   fs.writeFileSync(indexFile, html);
 }
