@@ -47,6 +47,10 @@ const checks = [
     pass: /<script>\s*[\s\S]+<\/script>/.test(html) && !html.includes('type="module"') && !/<script\b[^>]*\bsrc=/i.test(html),
   },
   {
+    label: 'offline index embeds the Transformers.js ES module for file:// loading',
+    pass: html.includes('id="offline-transformers-module-source"') && html.includes('export{'),
+  },
+  {
     label: 'offline app script was inlined without replacement-token corruption',
     pass: !/<script>\s*[\s\S]*<\/body>[\s\S]*<\/script>/i.test(html) && !/<script>\s*[\s\S]*<\/head>[\s\S]*<\/script>/i.test(html),
   },
@@ -65,6 +69,10 @@ const checks = [
   {
     label: 'all referenced Google font files are included',
     pass: referencedFonts.length > 0 && referencedFonts.every((fontFileName) => fs.existsSync(path.join(repoRoot, 'dist-offline', 'vendor', 'google-fonts', fontFileName))),
+  },
+  {
+    label: 'offline Material Symbols CSS enables icon ligatures',
+    pass: fontCss.includes("font-feature-settings: 'liga'") && fontCss.includes("font-family: 'Material Symbols Outlined'"),
   },
   {
     label: 'offline index does not contain external stylesheet tags',

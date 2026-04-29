@@ -19,6 +19,25 @@ const googleFontCssUrls = [
 ];
 const googleFontsDir = path.join(distDir, 'vendor', 'google-fonts');
 const googleFontsCssFile = path.join(googleFontsDir, 'fonts.css');
+const offlineTransformersModuleScriptId = 'offline-transformers-module-source';
+const materialSymbolsOfflineCss = `
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'liga';
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}`;
 
 if (!fs.existsSync(distDir)) {
   throw new Error('dist-offline does not exist. Run npm run build:offline first.');
@@ -94,14 +113,16 @@ async function ensureGoogleFonts() {
     combinedCss += `${css}\n`;
   }
 
-  fs.writeFileSync(googleFontsCssFile, combinedCss);
+  fs.writeFileSync(googleFontsCssFile, `${combinedCss}\n${materialSymbolsOfflineCss}\n`);
 }
 
 function googleFontsAreComplete() {
   if (!fs.existsSync(googleFontsCssFile)) return false;
   const css = fs.readFileSync(googleFontsCssFile, 'utf8');
   const referencedFonts = [...css.matchAll(/url\(vendor\/google-fonts\/([^)]+)\)/g)].map((match) => match[1]);
-  return referencedFonts.length > 0 && referencedFonts.every((fontFileName) => fs.existsSync(path.join(googleFontsDir, fontFileName)));
+  return referencedFonts.length > 0
+    && css.includes("font-feature-settings: 'liga'")
+    && referencedFonts.every((fontFileName) => fs.existsSync(path.join(googleFontsDir, fontFileName)));
 }
 
 function getHtmlAttribute(tag, name) {
@@ -146,6 +167,13 @@ function escapeScript(js) {
   return js.replace(/<\/script/gi, '<\\/script');
 }
 
+function localizeTransformersRuntimeSource(source) {
+  return source.replaceAll(
+    'https://cdn.jsdelivr.net/npm/@huggingface/transformers@${s.env.version}/dist/',
+    'vendor/'
+  );
+}
+
 const offlineRuntimeStyle = `
 <style id="offline-runtime-fallbacks">
   :root {
@@ -175,6 +203,7 @@ function inlineBuiltAssets() {
   const indexFile = path.join(distDir, 'index.html');
   let html = fs.readFileSync(indexFile, 'utf8');
   const inlineScripts = [];
+  const transformersModuleSource = localizeTransformersRuntimeSource(readDistAsset('vendor/transformers.min.js'));
 
   // Remove Google Fonts network requests (preconnect + stylesheet links).
   html = html.replace(/\s*<link\b[^>]*>\s*/gi, (tag) => {
@@ -214,7 +243,10 @@ function inlineBuiltAssets() {
   // Loading shell goes first so it shows while the app script executes.
   // React's createRoot replaces #root content, which removes the shell on successful mount.
   html = html.replace('<div id="root"></div>', () => `<div id="root">${offlineLoadingShell}</div>`);
-  html = html.replace('</body>', () => `${inlineScripts.join('\n')}\n  </body>`);
+  html = html.replace(
+    '</body>',
+    () => `<script type="application/json" id="${offlineTransformersModuleScriptId}">\n${escapeScript(transformersModuleSource)}\n</script>\n${inlineScripts.join('\n')}\n  </body>`
+  );
 
   fs.writeFileSync(indexFile, html);
 }
