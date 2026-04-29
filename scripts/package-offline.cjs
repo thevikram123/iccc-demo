@@ -182,7 +182,10 @@ function inlineBuiltAssets() {
     return isGoogleHostedFontUrl(href) ? '\n' : tag;
   });
 
-  html = html.replace('</head>', `<style id="offline-google-fonts">\n${escapeStyle(fs.readFileSync(googleFontsCssFile, 'utf8'))}\n</style>\n  </head>`);
+  html = html.replace(
+    '</head>',
+    () => `<style id="offline-google-fonts">\n${escapeStyle(fs.readFileSync(googleFontsCssFile, 'utf8'))}\n</style>\n  </head>`
+  );
 
   html = html.replace(
     /<link\b(?=[^>]*\brel=["']stylesheet["'])(?=[^>]*\bhref=["']([^"']+)["'])[^>]*\/?>/gi,
@@ -207,11 +210,11 @@ function inlineBuiltAssets() {
     throw new Error('Offline index still contains external script or stylesheet tags after inlining.');
   }
 
-  html = html.replace('</head>', `${offlineRuntimeStyle}\n  </head>`);
+  html = html.replace('</head>', () => `${offlineRuntimeStyle}\n  </head>`);
   // Loading shell goes first so it shows while the app script executes.
   // React's createRoot replaces #root content, which removes the shell on successful mount.
-  html = html.replace('<div id="root"></div>', `<div id="root">${offlineLoadingShell}</div>`);
-  html = html.replace('</body>', `${inlineScripts.join('\n')}\n  </body>`);
+  html = html.replace('<div id="root"></div>', () => `<div id="root">${offlineLoadingShell}</div>`);
+  html = html.replace('</body>', () => `${inlineScripts.join('\n')}\n  </body>`);
 
   fs.writeFileSync(indexFile, html);
 }

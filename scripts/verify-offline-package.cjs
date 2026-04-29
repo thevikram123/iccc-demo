@@ -47,6 +47,10 @@ const checks = [
     pass: /<script>\s*[\s\S]+<\/script>/.test(html) && !html.includes('type="module"') && !/<script\b[^>]*\bsrc=/i.test(html),
   },
   {
+    label: 'offline app script was inlined without replacement-token corruption',
+    pass: !/<script>\s*[\s\S]*<\/body>[\s\S]*<\/script>/i.test(html) && !/<script>\s*[\s\S]*<\/head>[\s\S]*<\/script>/i.test(html),
+  },
+  {
     label: 'offline app script runs after the React mount point exists',
     pass: rootIndex !== -1 && firstScriptIndex > rootIndex,
   },
