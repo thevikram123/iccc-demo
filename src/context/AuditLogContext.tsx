@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
 
 export interface AuditLog {
   id: string;
@@ -24,14 +24,14 @@ export const AuditLogProvider: React.FC<{children: React.ReactNode}> = ({ childr
     }
   ]);
 
-  const addLog = (action: string, details: string) => {
+  const addLog = useCallback((action: string, details: string) => {
     setLogs(prev => [{
       id: Math.random().toString(36).substr(2, 9),
       timestamp: new Date().toLocaleTimeString('en-GB', { timeZone: 'UTC' }) + ' UTC',
       action,
       details
     }, ...prev]);
-  };
+  }, []);
 
   return (
     <AuditLogContext.Provider value={{ logs, addLog }}>
