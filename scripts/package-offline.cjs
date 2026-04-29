@@ -13,6 +13,38 @@ if (!fs.existsSync(distDir)) {
 
 fs.mkdirSync(outDir, { recursive: true });
 
+function readDistAsset(assetPath) {
+  const normalized = assetPath.replace(/^\.\//, '').replace(/^\//, '');
+  return fs.readFileSync(path.join(distDir, normalized), 'utf8');
+}
+
+function escapeStyle(css) {
+  return css.replace(/<\/style/gi, '<\\/style');
+}
+
+function escapeScript(js) {
+  return js.replace(/<\/script/gi, '<\\/script');
+}
+
+function inlineBuiltAssets() {
+  const indexFile = path.join(distDir, 'index.html');
+  let html = fs.readFileSync(indexFile, 'utf8');
+
+  html = html.replace(
+    /<link rel="stylesheet" crossorigin href="([^"]+)"\s*\/?>/g,
+    (_match, href) => `<style>\n${escapeStyle(readDistAsset(href))}\n</style>`
+  );
+
+  html = html.replace(
+    /<script type="module" crossorigin src="([^"]+)"><\/script>/g,
+    (_match, src) => `<script type="module">\n${escapeScript(readDistAsset(src))}\n</script>`
+  );
+
+  fs.writeFileSync(indexFile, html);
+}
+
+inlineBuiltAssets();
+
 const crcTable = new Uint32Array(256);
 for (let i = 0; i < 256; i++) {
   let c = i;

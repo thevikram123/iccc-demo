@@ -17,7 +17,7 @@ offline-build/iccc-demo-offline.zip
 ## Use
 
 1. Extract the zip on the demo laptop.
-2. Open `index.html` in a Chromium-based browser.
+2. Open the extracted `index.html` in a Chromium-based browser. Do not open the repository's source `index.html`; use the one inside the generated zip.
 3. On first use, keep internet available and open AI Copilot once. The app loads Transformers.js and Gemma 3 270M into the browser cache.
 4. After that warm-up, the same extracted folder can be opened without network access for demos.
 

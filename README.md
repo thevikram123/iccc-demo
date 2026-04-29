@@ -57,6 +57,6 @@ This repo also includes a side build for laptop demos in low-connectivity enviro
 npm run package:offline
 ```
 
-The command builds `dist-offline/` with local-file friendly routes and relative assets, then writes `offline-build/iccc-demo-offline.zip`. Extract the zip and open `index.html` in a Chromium-based browser. The first AI Copilot run needs internet to cache Transformers.js and `google/gemma-3-270m-it`; subsequent runs use the browser cache and do not call the Cloudflare Worker.
+The command builds `dist-offline/` with local-file friendly routes and relative assets, inlines the built app into a direct-open `index.html`, then writes `offline-build/iccc-demo-offline.zip`. Extract the zip and open its `index.html` in a Chromium-based browser. The first AI Copilot run needs internet to cache Transformers.js and `google/gemma-3-270m-it`; subsequent runs use the browser cache and do not call the Cloudflare Worker.
 
 More detail is in `docs/offline-demo.md`.

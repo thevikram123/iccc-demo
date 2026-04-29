@@ -26,5 +26,14 @@ export default defineConfig(({ mode }) => {
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
     },
+    build: isOfflineDemo ? {
+      cssCodeSplit: false,
+      modulePreload: false,
+      rollupOptions: {
+        output: {
+          inlineDynamicImports: true,
+        },
+      },
+    } : undefined,
   };
 });
