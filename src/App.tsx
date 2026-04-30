@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import GisMap from './pages/GisMap';
@@ -15,6 +15,9 @@ import SurveyTracking from './pages/SurveyTracking';
 import Login from './pages/Login';
 import VehicleTracking from './pages/VehicleTracking';
 import { AuditLogProvider } from './context/AuditLogContext';
+import { IS_OFFLINE_DEMO } from './utils/offlineDemo';
+
+const Router = IS_OFFLINE_DEMO ? HashRouter : BrowserRouter;
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -25,7 +28,7 @@ export default function App() {
 
   return (
     <AuditLogProvider>
-      <BrowserRouter>
+      <Router>
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
@@ -44,7 +47,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
-      </BrowserRouter>
+      </Router>
     </AuditLogProvider>
   );
 }
