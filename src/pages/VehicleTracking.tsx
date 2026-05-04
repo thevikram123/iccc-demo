@@ -218,6 +218,11 @@ export default function VehicleTracking({ mode }: { mode: Mode }) {
   const { addLog } = useAuditLog();
   const [tick, setTick] = useState(0);
   const [selectedId, setSelectedId] = useState(CONFIG[mode].vehicles[0].id);
+  const [collapsedPanels, setCollapsedPanels] = useState({
+    overview: false,
+    fleet: false,
+    evidence: false,
+  });
   const config = CONFIG[mode];
   const selectedVehicle = config.vehicles.find((vehicle) => vehicle.id === selectedId) || config.vehicles[0];
 
@@ -238,6 +243,14 @@ export default function VehicleTracking({ mode }: { mode: Mode }) {
   }, [config.vehicles, tick]);
 
   const activeHitCount = selectedVehicle.cctvHits.filter((_, index) => index <= interpolate(selectedVehicle.route, tick, selectedVehicle.offset).index).length;
+
+  const togglePanel = (panel: keyof typeof collapsedPanels, label: string) => {
+    setCollapsedPanels((current) => {
+      const nextValue = !current[panel];
+      addLog('UI_ACTION', `${label} panel ${nextValue ? 'collapsed' : 'expanded'} in ${config.title}`);
+      return { ...current, [panel]: nextValue };
+    });
+  };
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-white text-black">
@@ -298,106 +311,159 @@ export default function VehicleTracking({ mode }: { mode: Mode }) {
         Back to GIS Map
       </Link>
 
-      <section className="absolute left-6 top-20 z-[500] w-[min(560px,calc(100%-3rem))] rounded-sm border border-black/10 bg-white/95 p-5 shadow-2xl">
+      <section className={`absolute left-6 top-20 z-[500] rounded-sm border border-black/10 bg-white/95 shadow-2xl transition-all ${collapsedPanels.overview ? 'w-[min(330px,calc(100%-3rem))] p-3' : 'w-[min(560px,calc(100%-3rem))] p-5'}`}>
         <div className="flex items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <div className="mb-2 inline-flex items-center gap-2 rounded-sm border border-black/10 bg-white px-2 py-1 font-mono text-[10px] font-black tracking-widest" style={{ color: config.accent }}>
               <span className="material-symbols-outlined text-sm">{config.icon}</span>
               {config.feedLabel}
             </div>
-            <h1 className="font-headline text-3xl font-black uppercase tracking-tighter">{config.title}</h1>
-            <p className="mt-1 max-w-xl font-mono text-[11px] font-bold uppercase tracking-widest">{config.subtitle}</p>
+            {!collapsedPanels.overview && (
+              <>
+                <h1 className="font-headline text-3xl font-black uppercase tracking-tighter">{config.title}</h1>
+                <p className="mt-1 max-w-xl font-mono text-[11px] font-bold uppercase tracking-widest">{config.subtitle}</p>
+              </>
+            )}
           </div>
+          <button
+            type="button"
+            onClick={() => togglePanel('overview', 'Fleet overview')}
+            aria-label={collapsedPanels.overview ? 'Expand fleet overview panel' : 'Collapse fleet overview panel'}
+            className="pointer-events-auto shrink-0 rounded-sm border border-black/20 bg-white p-1.5 text-black transition-colors hover:bg-black hover:text-white"
+          >
+            <span className="material-symbols-outlined text-base">{collapsedPanels.overview ? 'keyboard_arrow_down' : 'keyboard_arrow_up'}</span>
+          </button>
         </div>
-        <div className="mt-5 grid grid-cols-3 gap-3">
-          <div className="border border-black/10 bg-surface-container-highest p-3">
-            <div className="font-mono text-[9px] font-black uppercase tracking-widest">Live GPS Units</div>
-            <div className="font-mono text-2xl font-black">{config.vehicles.length}</div>
+
+        {!collapsedPanels.overview && (
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            <div className="border border-black/10 bg-surface-container-highest p-3">
+              <div className="font-mono text-[9px] font-black uppercase tracking-widest">Live GPS Units</div>
+              <div className="font-mono text-2xl font-black">{config.vehicles.length}</div>
+            </div>
+            <div className="border border-black/10 bg-surface-container-highest p-3">
+              <div className="font-mono text-[9px] font-black uppercase tracking-widest">CCTV Evidence</div>
+              <div className="font-mono text-2xl font-black">{config.vehicles.reduce((total, vehicle) => total + vehicle.cctvHits.length, 0)}</div>
+            </div>
+            <div className="border border-black/10 p-3" style={{ background: config.light }}>
+              <div className="font-mono text-[9px] font-black uppercase tracking-widest">Trace Refresh</div>
+              <div className="font-mono text-2xl font-black">{(1.2).toFixed(1)}s</div>
+            </div>
           </div>
-          <div className="border border-black/10 bg-surface-container-highest p-3">
-            <div className="font-mono text-[9px] font-black uppercase tracking-widest">CCTV Evidence</div>
-            <div className="font-mono text-2xl font-black">{config.vehicles.reduce((total, vehicle) => total + vehicle.cctvHits.length, 0)}</div>
-          </div>
-          <div className="border border-black/10 p-3" style={{ background: config.light }}>
-            <div className="font-mono text-[9px] font-black uppercase tracking-widest">Trace Refresh</div>
-            <div className="font-mono text-2xl font-black">{(1.2).toFixed(1)}s</div>
-          </div>
-        </div>
+        )}
       </section>
 
-      <section className="absolute bottom-6 left-6 z-[500] w-[min(560px,calc(100%-3rem))] rounded-sm border border-black/10 bg-white/95 p-4 shadow-2xl">
+      <section className={`absolute bottom-6 left-6 z-[500] rounded-sm border border-black/10 bg-white/95 shadow-2xl transition-all ${collapsedPanels.fleet ? 'w-[min(260px,calc(100%-3rem))] p-3' : 'w-[min(560px,calc(100%-3rem))] p-4'}`}>
         <div className="mb-3 flex items-center justify-between border-b border-black/10 pb-2">
           <span className="font-mono text-[10px] font-black uppercase tracking-widest">Fleet Units</span>
-          <span className="font-mono text-[10px] font-black" style={{ color: config.accent }}>GPS + CCTV FUSED</span>
-        </div>
-        <div className="grid gap-2 md:grid-cols-3">
-          {config.vehicles.map((vehicle) => {
-            const live = livePositions.find((item) => item.vehicle.id === vehicle.id);
-            return (
-              <button
-                key={vehicle.id}
-                onClick={() => setSelectedId(vehicle.id)}
-                className={`pointer-events-auto rounded-sm border p-3 text-left transition-colors ${selectedId === vehicle.id ? 'border-black bg-white' : 'border-black/10 bg-white hover:bg-surface-container-highest'}`}
-                style={{ boxShadow: selectedId === vehicle.id ? `inset 4px 0 0 ${config.accent}` : undefined }}
-              >
-                <div className="font-mono text-[11px] font-black">{vehicle.id}</div>
-                <div className="mt-1 font-mono text-[9px] font-bold uppercase">{vehicle.plate}</div>
-                <div className="mt-1 font-mono text-[9px] font-bold">{vehicle.ward}</div>
-                <div className="mt-2 font-mono text-[9px] font-bold">{vehicle.status}</div>
-                <div className="mt-2 font-mono text-[9px] font-black">GPS {live?.position[0].toFixed(4)}, {live?.position[1].toFixed(4)}</div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      <aside className="absolute bottom-6 right-6 top-6 z-[500] flex w-[min(420px,calc(100%-3rem))] flex-col rounded-sm border border-black/10 bg-white/95 shadow-2xl">
-        <div className="border-b border-black/10 p-4">
-          <div className="font-mono text-[10px] font-black uppercase tracking-widest">Selected Track</div>
-          <h2 className="mt-1 font-headline text-2xl font-black uppercase tracking-tighter">{selectedVehicle.id}</h2>
-          <div className="mt-2 grid grid-cols-2 gap-2 font-mono text-[10px] font-bold">
-            <span>Plate: {selectedVehicle.plate}</span>
-            <span>Speed: {selectedVehicle.speed + (tick % 4)} km/h</span>
-            <span>Driver: {selectedVehicle.driver}</span>
-            <span>CCTV Hits: {activeHitCount}/{selectedVehicle.cctvHits.length}</span>
-          </div>
-          <div className="mt-2 font-mono text-[10px] font-bold">Route: {selectedVehicle.ward}</div>
-          <div className="mt-3 break-all border border-black bg-black px-3 py-2 font-mono text-[10px] font-bold text-white">
-            GPS SIGNATURE: {selectedVehicle.gpsSignature}
+          <div className="flex items-center gap-3">
+            {!collapsedPanels.fleet && <span className="font-mono text-[10px] font-black" style={{ color: config.accent }}>GPS + CCTV FUSED</span>}
+            <button
+              type="button"
+              onClick={() => togglePanel('fleet', 'Fleet units')}
+              aria-label={collapsedPanels.fleet ? 'Expand fleet units panel' : 'Collapse fleet units panel'}
+              className="pointer-events-auto rounded-sm border border-black/20 bg-white p-1 text-black transition-colors hover:bg-black hover:text-white"
+            >
+              <span className="material-symbols-outlined text-base">{collapsedPanels.fleet ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}</span>
+            </button>
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-4 custom-scrollbar">
-          <div className="mb-4 font-mono text-[10px] font-black uppercase tracking-widest">CCTV Evidence Timeline</div>
-          <div className="relative space-y-0 border-l border-black/20 pl-5">
-            {selectedVehicle.cctvHits.map((hit, index) => {
-              const isConfirmed = index < activeHitCount;
+        {!collapsedPanels.fleet && (
+          <div className="grid gap-2 md:grid-cols-3">
+            {config.vehicles.map((vehicle) => {
+              const live = livePositions.find((item) => item.vehicle.id === vehicle.id);
               return (
-                <div key={hit.cameraId} className="relative pb-5">
-                  <div
-                    className="absolute -left-[27px] top-1 h-3.5 w-3.5 rounded-full border border-black bg-white"
-                    style={{ boxShadow: isConfirmed ? `0 0 0 4px ${config.light}` : 'none' }}
-                  />
-                  <div className={`rounded-sm border p-3 ${isConfirmed ? 'border-black/20 bg-white' : 'border-black/10 bg-surface-container-highest opacity-70'}`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="font-mono text-[10px] font-black">{hit.timestamp} / {hit.cameraId}</div>
-                        <div className="mt-1 font-mono text-[10px] font-bold">{hit.location}</div>
-                      </div>
-                      <span className="material-symbols-outlined rounded-full border border-black/20 bg-white p-1 text-[15px]">videocam</span>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between gap-3 font-mono text-[9px] font-black uppercase tracking-widest">
-                      <span className="rounded-sm px-2 py-1" style={{ background: isConfirmed ? config.light : '#f5f5f5' }}>
-                        {isConfirmed ? 'Confirmed' : 'Upcoming'}
-                      </span>
-                      <span>{hit.confidence}% match</span>
-                    </div>
-                  </div>
-                </div>
+                <button
+                  key={vehicle.id}
+                  onClick={() => setSelectedId(vehicle.id)}
+                  className={`pointer-events-auto rounded-sm border p-3 text-left transition-colors ${selectedId === vehicle.id ? 'border-black bg-white' : 'border-black/10 bg-white hover:bg-surface-container-highest'}`}
+                  style={{ boxShadow: selectedId === vehicle.id ? `inset 4px 0 0 ${config.accent}` : undefined }}
+                >
+                  <div className="font-mono text-[11px] font-black">{vehicle.id}</div>
+                  <div className="mt-1 font-mono text-[9px] font-bold uppercase">{vehicle.plate}</div>
+                  <div className="mt-1 font-mono text-[9px] font-bold">{vehicle.ward}</div>
+                  <div className="mt-2 font-mono text-[9px] font-bold">{vehicle.status}</div>
+                  <div className="mt-2 font-mono text-[9px] font-black">GPS {live?.position[0].toFixed(4)}, {live?.position[1].toFixed(4)}</div>
+                </button>
               );
             })}
           </div>
-        </div>
+        )}
+      </section>
+
+      <aside className={`absolute right-6 top-6 z-[500] rounded-sm border border-black/10 bg-white/95 shadow-2xl transition-all ${collapsedPanels.evidence ? 'w-14' : 'bottom-6 flex w-[min(420px,calc(100%-3rem))] flex-col'}`}>
+        {collapsedPanels.evidence ? (
+          <button
+            type="button"
+            onClick={() => togglePanel('evidence', 'Selected track')}
+            aria-label="Expand selected track panel"
+            className="pointer-events-auto flex h-14 w-14 items-center justify-center text-black transition-colors hover:bg-black hover:text-white"
+          >
+            <span className="material-symbols-outlined text-xl">keyboard_arrow_left</span>
+          </button>
+        ) : (
+          <>
+            <div className="border-b border-black/10 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="font-mono text-[10px] font-black uppercase tracking-widest">Selected Track</div>
+                  <h2 className="mt-1 font-headline text-2xl font-black uppercase tracking-tighter">{selectedVehicle.id}</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => togglePanel('evidence', 'Selected track')}
+                  aria-label="Collapse selected track panel"
+                  className="pointer-events-auto rounded-sm border border-black/20 bg-white p-1.5 text-black transition-colors hover:bg-black hover:text-white"
+                >
+                  <span className="material-symbols-outlined text-base">keyboard_arrow_right</span>
+                </button>
+              </div>
+              <div className="mt-2 grid grid-cols-2 gap-2 font-mono text-[10px] font-bold">
+                <span>Plate: {selectedVehicle.plate}</span>
+                <span>Speed: {selectedVehicle.speed + (tick % 4)} km/h</span>
+                <span>Driver: {selectedVehicle.driver}</span>
+                <span>CCTV Hits: {activeHitCount}/{selectedVehicle.cctvHits.length}</span>
+              </div>
+              <div className="mt-2 font-mono text-[10px] font-bold">Route: {selectedVehicle.ward}</div>
+              <div className="mt-3 break-all border border-black bg-black px-3 py-2 font-mono text-[10px] font-bold text-white">
+                GPS SIGNATURE: {selectedVehicle.gpsSignature}
+              </div>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto p-4 custom-scrollbar">
+              <div className="mb-4 font-mono text-[10px] font-black uppercase tracking-widest">CCTV Evidence Timeline</div>
+              <div className="relative space-y-0 border-l border-black/20 pl-5">
+                {selectedVehicle.cctvHits.map((hit, index) => {
+                  const isConfirmed = index < activeHitCount;
+                  return (
+                    <div key={hit.cameraId} className="relative pb-5">
+                      <div
+                        className="absolute -left-[27px] top-1 h-3.5 w-3.5 rounded-full border border-black bg-white"
+                        style={{ boxShadow: isConfirmed ? `0 0 0 4px ${config.light}` : 'none' }}
+                      />
+                      <div className={`rounded-sm border p-3 ${isConfirmed ? 'border-black/20 bg-white' : 'border-black/10 bg-surface-container-highest opacity-70'}`}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="font-mono text-[10px] font-black">{hit.timestamp} / {hit.cameraId}</div>
+                            <div className="mt-1 font-mono text-[10px] font-bold">{hit.location}</div>
+                          </div>
+                          <span className="material-symbols-outlined rounded-full border border-black/20 bg-white p-1 text-[15px]">videocam</span>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between gap-3 font-mono text-[9px] font-black uppercase tracking-widest">
+                          <span className="rounded-sm px-2 py-1" style={{ background: isConfirmed ? config.light : '#f5f5f5' }}>
+                            {isConfirmed ? 'Confirmed' : 'Upcoming'}
+                          </span>
+                          <span>{hit.confidence}% match</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
       </aside>
     </div>
   );
