@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../components/Layout';
 import { useAuditLog } from '../context/AuditLogContext';
+import { IS_OFFLINE_DEMO } from '../utils/offlineDemo';
 
 interface Cluster {
   id: string;
@@ -29,30 +30,34 @@ const CLUSTERS: Cluster[] = [
   { id: 'ro', name: 'ROHINI', health: 92, activeNodes: 1500, totalNodes: 1600, image: img('/images/rohini.jpeg')},
 ];
 
+const offlineSwitchImage = img('/images/streetlight.png');
+const offlineCctvImage = img('/images/camera fov tampering.png');
+const infraImage = (onlineImage: string, fallbackImage: string) => IS_OFFLINE_DEMO ? fallbackImage : onlineImage;
+
 const JUNCTIONS: Record<string, Junction[]> = {
   'cp': [
-    { id: 'j1', name: 'INNER_CIRCLE_N', status: 'online', cameras: 12, switchImage: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400' },
-    { id: 'j2', name: 'RADIAL_ROAD_3', status: 'warning', cameras: 8, switchImage: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400' },
-    { id: 'j3', name: 'PALIKA_BAZAR_ENT', status: 'offline', cameras: 4, switchImage: 'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400' },
-    { id: 'j4', name: 'OUTER_CIRCLE_S', status: 'online', cameras: 16, switchImage: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400' },
+    { id: 'j1', name: 'INNER_CIRCLE_N', status: 'online', cameras: 12, switchImage: infraImage('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
+    { id: 'j2', name: 'RADIAL_ROAD_3', status: 'warning', cameras: 8, switchImage: infraImage('https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
+    { id: 'j3', name: 'PALIKA_BAZAR_ENT', status: 'offline', cameras: 4, switchImage: infraImage('https://images.unsplash.com/photo-1597852074816-d933c7d2b988?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
+    { id: 'j4', name: 'OUTER_CIRCLE_S', status: 'online', cameras: 16, switchImage: infraImage('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
   ],
   'hk': [
-    { id: 'hk1', name: 'INNER_CIRCLE_N', status: 'online', cameras: 12, switchImage: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400' },
-    { id: 'hk2', name: 'RADIAL_ROAD_3', status: 'warning', cameras: 8, switchImage: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400' },
-    { id: 'hk3', name: 'PALIKA_BAZAR_ENT', status: 'offline', cameras: 4, switchImage: 'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400' },
-    { id: 'hk4', name: 'OUTER_CIRCLE_S', status: 'online', cameras: 16, switchImage: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400' },
+    { id: 'hk1', name: 'INNER_CIRCLE_N', status: 'online', cameras: 12, switchImage: infraImage('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
+    { id: 'hk2', name: 'RADIAL_ROAD_3', status: 'warning', cameras: 8, switchImage: infraImage('https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
+    { id: 'hk3', name: 'PALIKA_BAZAR_ENT', status: 'offline', cameras: 4, switchImage: infraImage('https://images.unsplash.com/photo-1597852074816-d933c7d2b988?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
+    { id: 'hk4', name: 'OUTER_CIRCLE_S', status: 'online', cameras: 16, switchImage: infraImage('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
   ],
   'dw': [
-    { id: 'dw1', name: 'INNER_CIRCLE_N', status: 'online', cameras: 12, switchImage: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400' },
-    { id: 'dw2', name: 'RADIAL_ROAD_3', status: 'warning', cameras: 8, switchImage: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400' },
-    { id: 'dw3', name: 'PALIKA_BAZAR_ENT', status: 'offline', cameras: 4, switchImage: 'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400' },
-    { id: 'dw4', name: 'OUTER_CIRCLE_S', status: 'online', cameras: 16, switchImage: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400' },
+    { id: 'dw1', name: 'INNER_CIRCLE_N', status: 'online', cameras: 12, switchImage: infraImage('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
+    { id: 'dw2', name: 'RADIAL_ROAD_3', status: 'warning', cameras: 8, switchImage: infraImage('https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
+    { id: 'dw3', name: 'PALIKA_BAZAR_ENT', status: 'offline', cameras: 4, switchImage: infraImage('https://images.unsplash.com/photo-1597852074816-d933c7d2b988?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
+    { id: 'dw4', name: 'OUTER_CIRCLE_S', status: 'online', cameras: 16, switchImage: infraImage('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
   ],
   'ro': [
-    { id: 'ro1', name: 'INNER_CIRCLE_N', status: 'online', cameras: 12, switchImage: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400' },
-    { id: 'ro2', name: 'RADIAL_ROAD_3', status: 'warning', cameras: 8, switchImage: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400' },
-    { id: 'ro3', name: 'PALIKA_BAZAR_ENT', status: 'offline', cameras: 4, switchImage: 'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400' },
-    { id: 'ro4', name: 'OUTER_CIRCLE_S', status: 'online', cameras: 16, switchImage: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=400', cctvImage: 'https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400' },
+    { id: 'ro1', name: 'INNER_CIRCLE_N', status: 'online', cameras: 12, switchImage: infraImage('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
+    { id: 'ro2', name: 'RADIAL_ROAD_3', status: 'warning', cameras: 8, switchImage: infraImage('https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
+    { id: 'ro3', name: 'PALIKA_BAZAR_ENT', status: 'offline', cameras: 4, switchImage: infraImage('https://images.unsplash.com/photo-1597852074816-d933c7d2b988?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
+    { id: 'ro4', name: 'OUTER_CIRCLE_S', status: 'online', cameras: 16, switchImage: infraImage('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=400', offlineSwitchImage), cctvImage: infraImage('https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&q=80&w=400', offlineCctvImage) },
   ]
 };
 

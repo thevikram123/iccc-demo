@@ -1,0 +1,45 @@
+name: Build Offline Demo Zip
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.ts'
+      - 'scripts/package-offline.cjs'
+      - 'scripts/verify-offline-package.cjs'
+      - 'docs/offline-demo.md'
+      - '.github/workflows/offline-demo.yml'
+
+jobs:
+  offline-zip:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build offline zip
+        run: npm run package:offline
+
+      - name: Verify offline zip
+        run: npm run verify:offline
+
+      - name: Upload offline zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: iccc-demo-offline
+          path: offline-build/iccc-demo-offline.zip
